@@ -1,0 +1,1 @@
+﻿Allows adding of custom containers while maintaining cross-mod compatibility
