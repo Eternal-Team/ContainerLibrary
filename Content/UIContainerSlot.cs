@@ -47,7 +47,6 @@ namespace ContainerLibrary
 				if (ItemSlot.ShiftInUse)
 				{
 					Utility.LootAll(Handler, (item, index) => index == slot);
-					Handler.OnContentsChanged?.Invoke(slot);
 					return;
 				}
 

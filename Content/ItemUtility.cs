@@ -470,7 +470,7 @@ namespace ContainerLibrary
 		public static void DepositAll(ItemHandler handler, Func<Item, bool> selector = null)
 		{
 			Player player = Main.LocalPlayer;
-			IList<Item> Items = handler.stacks;
+			List<Item> Items = handler.stacks;
 
 			MoveCoins(player.inventory.Take(player.inventory.Length - 1).ToList(), handler);
 

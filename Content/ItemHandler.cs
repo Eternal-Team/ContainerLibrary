@@ -91,7 +91,7 @@ namespace ContainerLibrary
 
 			if (!simulate)
 			{
-				if (existing.IsAir) stacks[slot] = reachedLimit ? CopyItemWithSize(stack, limit) : stack;
+				if (existing.IsAir) stacks[slot] = reachedLimit ? CopyItemWithSize(stack, limit) : stack.Clone();
 				else existing.Grow(reachedLimit ? limit : stack.stack);
 
 				OnContentsChanged?.Invoke(slot);
