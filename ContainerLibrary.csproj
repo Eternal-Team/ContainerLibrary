@@ -32,6 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553" />
+    <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553" />
+    <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
+    <Reference Include="ReLogic">
+      <HintPath>..\..\Repository\ModularTools\bin\Debug\ReLogic.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -51,6 +57,9 @@
     <Compile Include="ContainerLibrary.cs" />
     <Compile Include="Content\FluidHandler.cs" />
     <Compile Include="Content\ItemHandler.cs" />
+    <Compile Include="Content\UIContainerSlot.cs" />
+    <Compile Include="Content\ItemUtility.cs" />
+    <Compile Include="Content\FluidUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +67,10 @@
     <Content Include="description.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BaseLibrary\BaseLibrary.csproj">
+      <Project>{0387FE69-7E77-4DC7-9867-EC3994E946D2}</Project>
+      <Name>BaseLibrary</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FluidLibrary\FluidLibrary.csproj">
       <Project>{240C41CC-7825-4323-A76C-4EFC23AD6600}</Project>
       <Name>FluidLibrary</Name>

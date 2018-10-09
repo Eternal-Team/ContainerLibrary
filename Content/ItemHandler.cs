@@ -4,16 +4,16 @@ using System.Linq;
 using Terraria;
 using Terraria.ModLoader.IO;
 
-namespace ContainerLibrary.Content
+namespace ContainerLibrary
 {
 	public class ItemHandler
 	{
 		public List<Item> stacks;
 		public int Slots => stacks.Count;
 
-		public Action<ItemHandler, int> OnContentsChanged;
-		public Func<ItemHandler, int, int> GetSlotLimit = (handler, slot) => -1;
-		public Func<ItemHandler, int, Item, bool> IsItemValid = (handler, slot, item) => true;
+		public Action<int> OnContentsChanged;
+		public Func<int, int> GetSlotLimit = slot => -1;
+		public Func<int, Item, bool> IsItemValid = (slot, item) => true;
 
 		public ItemHandler() : this(1)
 		{
@@ -40,7 +40,7 @@ namespace ContainerLibrary.Content
 		{
 			ValidateSlotIndex(slot);
 			stacks[slot] = stack;
-			OnContentsChanged?.Invoke(this, slot);
+			OnContentsChanged?.Invoke(slot);
 		}
 
 		public Item GetItemInSlot(int slot)
@@ -70,7 +70,7 @@ namespace ContainerLibrary.Content
 
 			ValidateSlotIndex(slot);
 
-			if (!IsItemValid(this, slot, stack)) return stack;
+			if (!IsItemValid(slot, stack)) return stack;
 
 			Item existing = stacks[slot];
 
@@ -94,7 +94,7 @@ namespace ContainerLibrary.Content
 				if (existing.IsAir) stacks[slot] = reachedLimit ? CopyItemWithSize(stack, limit) : stack;
 				else existing.Grow(reachedLimit ? limit : stack.stack);
 
-				OnContentsChanged?.Invoke(this, slot);
+				OnContentsChanged?.Invoke(slot);
 			}
 
 			return reachedLimit ? CopyItemWithSize(stack, stack.stack - limit) : new Item();
@@ -117,7 +117,7 @@ namespace ContainerLibrary.Content
 				if (!simulate)
 				{
 					stacks[slot] = new Item();
-					OnContentsChanged?.Invoke(this, slot);
+					OnContentsChanged?.Invoke(slot);
 				}
 
 				return existing;
@@ -126,13 +126,13 @@ namespace ContainerLibrary.Content
 			if (!simulate)
 			{
 				stacks[slot] = CopyItemWithSize(existing, existing.stack - toExtract);
-				OnContentsChanged?.Invoke(this, slot);
+				OnContentsChanged?.Invoke(slot);
 			}
 
 			return CopyItemWithSize(existing, toExtract);
 		}
 
-		protected int GetItemLimit(int slot, Item stack) => GetSlotLimit(this, slot) == -1 ? stack.maxStack : Math.Min(GetSlotLimit(this, slot), stack.maxStack);
+		protected int GetItemLimit(int slot, Item stack) => GetSlotLimit(slot) == -1 ? stack.maxStack : Math.Min(GetSlotLimit(slot), stack.maxStack);
 
 		public TagCompound Save()
 		{
@@ -166,69 +166,5 @@ namespace ContainerLibrary.Content
 		{
 			if (slot < 0 || slot >= stacks.Count) throw new Exception($"Slot {slot} not in valid range - [0,{stacks.Count - 1})");
 		}
-	}
-
-	public static partial class Utility
-	{
-		public static Item SplitStack(this Item item, int amount)
-		{
-			int i = Math.Min(amount, item.stack);
-			Item itemstack = item.Clone();
-			itemstack.SetCount(i);
-			item.Shrink(i);
-			return itemstack;
-		}
-
-		public static void SetCount(this Item item, int size)
-		{
-			item.stack = size;
-			if (item.stack <= 0) item.TurnToAir();
-		}
-
-		public static void Grow(this Item item, int quantity) => item.SetCount(item.stack + quantity);
-
-		public static void Shrink(this Item item, int quantity) => item.Grow(-quantity);
-
-		public static bool AreItemStackTagsEqual(Item stackA, Item stackB)
-		{
-			if (stackA.IsAir && stackB.IsAir) return true;
-			if (!stackA.IsAir && !stackB.IsAir)
-			{
-				TagCompound tagA = stackA.modItem.Save();
-				TagCompound tagB = stackB.modItem.Save();
-
-				if (tagA == null && tagB != null) return false;
-				return tagA == null || tagA.Equals(tagB);
-			}
-
-			return false;
-		}
-
-		public static bool AreItemStacksEqual(Item stackA, Item stackB)
-		{
-			if (stackA.IsAir && stackB.IsAir) return true;
-
-			return !stackA.IsAir && !stackB.IsAir && stackA.IsItemStackEqual(stackB);
-		}
-
-		private static bool IsItemStackEqual(this Item item, Item other)
-		{
-			if (item.stack != other.stack) return false;
-
-			if (item != other) return false;
-
-			TagCompound tagA = item.modItem.Save();
-			TagCompound tagB = other.modItem.Save();
-
-			if (tagA == default(TagCompound) && tagB != default(TagCompound)) return false;
-
-			return tagA == default(TagCompound) || tagA.Equals(tagB);
-		}
-
-		public static bool IsItemEqual(this Item item, Item other) => !other.IsAir && item == other;
-
-		public static bool HasTagCompound(this Item item) => item.modItem?.Save() != null;
-
-		public static TagCompound GetTagCompound(this Item item) => item.modItem?.Save();
 	}
 }
