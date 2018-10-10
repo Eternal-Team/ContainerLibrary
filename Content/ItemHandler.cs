@@ -97,7 +97,11 @@ namespace ContainerLibrary
 				OnContentsChanged?.Invoke(slot);
 			}
 
-			return reachedLimit ? CopyItemWithSize(stack, stack.stack - limit) : new Item();
+			if (reachedLimit)
+				return CopyItemWithSize(stack, stack.stack - limit);
+			stack.active = false;
+			stack.TurnToAir();
+			return stack;
 		}
 
 		public Item ExtractItem(int slot, int amount, bool simulate = false)
