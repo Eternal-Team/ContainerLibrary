@@ -39,7 +39,7 @@ namespace ContainerLibrary
 
 		public override void Click(UIMouseEvent evt)
 		{
-			if (Handler.IsItemValid(slot, Main.mouseItem))
+			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
 				Item.newAndShiny = false;
 				Player player = Main.LocalPlayer;
@@ -84,16 +84,11 @@ namespace ContainerLibrary
 
 				Handler.OnContentsChanged?.Invoke(slot);
 			}
-			//OnInteract?.Invoke();
-
-			//Handler.Sync(slot);
-			//}
-			//else base.Click(evt);
 		}
 
 		public override void RightClickContinuous(UIMouseEvent evt)
 		{
-			if (Handler.IsItemValid(slot, Main.mouseItem))
+			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
 				OnInteract?.Invoke();
 
@@ -195,8 +190,6 @@ namespace ContainerLibrary
 
 					Recipe.FindRecipes();
 
-					//Handler.Sync(slot);
-
 					return;
 				}
 
@@ -228,9 +221,6 @@ namespace ContainerLibrary
 
 				Handler.OnContentsChanged?.Invoke(slot);
 			}
-
-			//    Handler.Sync(slot);
-			//}
 		}
 
 		public override int CompareTo(object obj) => slot.CompareTo(((UIContainerSlot)obj).slot);
