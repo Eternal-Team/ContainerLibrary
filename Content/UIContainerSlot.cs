@@ -22,6 +22,7 @@ namespace ContainerLibrary
 		public int slot;
 
 		public event Action OnInteract;
+		public Func<bool> ClickOverride = () => false;
 
 		public Item Item
 		{
@@ -39,7 +40,8 @@ namespace ContainerLibrary
 
 		public override void Click(UIMouseEvent evt)
 		{
-			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
+			if (ClickOverride()) return;
+			if (Handler.IsItemValid(Handler, slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
 				Item.newAndShiny = false;
 				Player player = Main.LocalPlayer;
@@ -47,48 +49,38 @@ namespace ContainerLibrary
 				if (ItemSlot.ShiftInUse)
 				{
 					Utility.LootAll(Handler, (item, index) => index == slot);
+					OnInteract?.Invoke();
 					return;
 				}
 
-				Item temp = Item;
-				Utils.Swap(ref temp, ref Main.mouseItem);
-				Item = temp;
-
-				if (Item.stack > 0) AchievementsHelper.NotifyItemPickup(player, Item);
-				if (Item.type == 0 || Item.stack < 1) Item = new Item();
-				if (Main.mouseItem.IsTheSameAs(Item))
+				if (Main.mouseItem.IsAir) Main.mouseItem = Handler.ExtractItem(slot, Item.maxStack);
+				else
 				{
-					Utils.Swap(ref Item.favorited, ref Main.mouseItem.favorited);
-					if (Item.stack != Item.maxStack && Main.mouseItem.stack != Main.mouseItem.maxStack)
+					if (Item.IsTheSameAs(Main.mouseItem)) Main.mouseItem = Handler.InsertItem(slot, Main.mouseItem);
+					else
 					{
-						if (Main.mouseItem.stack + Item.stack <= Main.mouseItem.maxStack)
-						{
-							Item.stack += Main.mouseItem.stack;
-							Main.mouseItem.stack = 0;
-						}
-						else
-						{
-							int delta = Main.mouseItem.maxStack - Item.stack;
-							Item.stack += delta;
-							Main.mouseItem.stack -= delta;
-						}
+						Item temp = Item;
+						Utils.Swap(ref temp, ref Main.mouseItem);
+						Item = temp;
 					}
 				}
 
-				if (Main.mouseItem.type == 0 || Main.mouseItem.stack < 1) Main.mouseItem = new Item();
+				if (Item.stack > 0) AchievementsHelper.NotifyItemPickup(player, Item);
+
 				if (Main.mouseItem.type > 0 || Item.type > 0)
 				{
 					Recipe.FindRecipes();
-					Main.PlaySound(7);
+					Main.PlaySound(SoundID.Grab);
 				}
 
+				OnInteract?.Invoke();
 				Handler.OnContentsChanged?.Invoke(slot);
 			}
 		}
 
 		public override void RightClickContinuous(UIMouseEvent evt)
 		{
-			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
+			if (Handler.IsItemValid(Handler, slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
 				OnInteract?.Invoke();
 
@@ -106,7 +98,8 @@ namespace ContainerLibrary
 
 				if (specialClick && Main.mouseRightRelease)
 				{
-					//Handler.Sync(slot);
+					OnInteract?.Invoke();
+					Handler.OnContentsChanged?.Invoke(slot);
 					return;
 				}
 
@@ -190,6 +183,8 @@ namespace ContainerLibrary
 
 					Recipe.FindRecipes();
 
+					OnInteract?.Invoke();
+					Handler.OnContentsChanged?.Invoke(slot);
 					return;
 				}
 
@@ -219,6 +214,7 @@ namespace ContainerLibrary
 					}
 				}
 
+				OnInteract?.Invoke();
 				Handler.OnContentsChanged?.Invoke(slot);
 			}
 		}

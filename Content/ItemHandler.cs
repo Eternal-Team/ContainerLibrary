@@ -13,7 +13,7 @@ namespace ContainerLibrary
 
 		public Action<int> OnContentsChanged;
 		public Func<int, int> GetSlotLimit = slot => -1;
-		public Func<int, Item, bool> IsItemValid = (slot, item) => true;
+		public Func<ItemHandler, int, Item, bool> IsItemValid = (handler, slot, item) => true;
 
 		public ItemHandler() : this(1)
 		{
@@ -70,7 +70,7 @@ namespace ContainerLibrary
 
 			ValidateSlotIndex(slot);
 
-			if (!IsItemValid(slot, stack)) return stack;
+			if (!IsItemValid(this, slot, stack)) return stack;
 
 			Item existing = stacks[slot];
 
@@ -132,7 +132,7 @@ namespace ContainerLibrary
 			return CopyItemWithSize(existing, toExtract);
 		}
 
-		protected int GetItemLimit(int slot, Item stack) => GetSlotLimit(slot) == -1 ? stack.maxStack : Math.Min(GetSlotLimit(slot), stack.maxStack);
+		protected int GetItemLimit(int slot, Item stack) => GetSlotLimit(slot) == -1 ? stack.maxStack : GetSlotLimit(slot);
 
 		public TagCompound Save()
 		{
