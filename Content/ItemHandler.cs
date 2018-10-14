@@ -30,6 +30,13 @@ namespace ContainerLibrary
 			this.stacks = stacks;
 		}
 
+		public ItemHandler Clone() => new ItemHandler(stacks.Select(x => x.Clone()).ToList())
+		{
+			IsItemValid = (Func<ItemHandler, int, Item, bool>)IsItemValid.Clone(),
+			GetSlotLimit = (Func<int, int>)GetSlotLimit.Clone(),
+			OnContentsChanged = (Action<int>)OnContentsChanged.Clone()
+		};
+
 		public void SetSize(int size)
 		{
 			stacks = new List<Item>(size);
