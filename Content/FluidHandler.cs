@@ -10,6 +10,10 @@ namespace ContainerLibrary
 	{
 		public List<ModFluid> stacks;
 
+		public Action<int> OnContentsChanged = slot => { };
+		public Func<int, int> GetSlotLimit = slot => -1;
+		public Func<FluidHandler, int, ModFluid, bool> IsFluidValid = (handler, slot, item) => true;
+
 		public FluidHandler() : this(1)
 		{
 		}
@@ -24,6 +28,13 @@ namespace ContainerLibrary
 		{
 			this.stacks = stacks;
 		}
+
+		public FluidHandler Clone() => new FluidHandler(stacks.Select(x => x.Clone()).ToList())
+		{
+			IsFluidValid = (Func<FluidHandler, int, ModFluid, bool>)IsFluidValid.Clone(),
+			GetSlotLimit = (Func<int, int>)GetSlotLimit.Clone(),
+			OnContentsChanged = (Action<int>)OnContentsChanged.Clone()
+		};
 
 		public void SetSize(int size)
 		{
@@ -68,6 +79,8 @@ namespace ContainerLibrary
 			if (stack == null) return null;
 
 			ValidateSlotIndex(slot);
+
+			if (!IsFluidValid(this, slot, stack)) return stack;
 
 			ModFluid existing = stacks[slot];
 
@@ -129,16 +142,9 @@ namespace ContainerLibrary
 			return CopyFluidWithSize(existing, toExtract);
 		}
 
-		public int GetSlotLimit(int slot) => -1;
-
 		protected int GetStackLimit(int slot, ModFluid stack)
 		{
 			return GetSlotLimit(slot) == -1 ? stack.maxVolume : Math.Min(GetSlotLimit(slot), stack.maxVolume);
-		}
-
-		public bool IsItemValid(int slot, ModFluid stack)
-		{
-			return true;
 		}
 
 		public TagCompound Save() => new TagCompound
@@ -168,10 +174,6 @@ namespace ContainerLibrary
 		protected void ValidateSlotIndex(int slot)
 		{
 			if (slot < 0 || slot >= stacks.Count) throw new Exception($"Slot {slot} not in valid range - [0,{stacks.Count - 1})");
-		}
-
-		protected void OnContentsChanged(int slot)
-		{
 		}
 	}
 }

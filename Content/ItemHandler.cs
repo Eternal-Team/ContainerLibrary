@@ -11,7 +11,7 @@ namespace ContainerLibrary
 		public List<Item> stacks;
 		public int Slots => stacks.Count;
 
-		public Action<int> OnContentsChanged;
+		public Action<int> OnContentsChanged = slot => { };
 		public Func<int, int> GetSlotLimit = slot => -1;
 		public Func<ItemHandler, int, Item, bool> IsItemValid = (handler, slot, item) => true;
 
