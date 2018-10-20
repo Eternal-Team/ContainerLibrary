@@ -1,8 +1,8 @@
-﻿using System;
-using BaseLibrary.UI.Elements;
+﻿using BaseLibrary.UI.Elements;
 using BaseLibrary.Utility;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
 using Terraria.GameContent.Achievements;
 using Terraria.ID;
@@ -26,8 +26,8 @@ namespace ContainerLibrary
 
 		public Item Item
 		{
-			get { return Handler.GetItemInSlot(slot); }
-			set { Handler.SetItemInSlot(slot, value); }
+			get => Handler.GetItemInSlot(slot);
+			set => Handler.SetItemInSlot(slot, value);
 		}
 
 		public UIContainerSlot(ItemHandler handler, int slot = 0)
@@ -225,8 +225,9 @@ namespace ContainerLibrary
 		{
 			CalculatedStyle dimensions = GetInnerDimensions();
 
+			spriteBatch.DrawSlot(dimensions, !Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture);
+
 			float scale = Math.Min(dimensions.Width / backgroundTexture.Width, dimensions.Height / backgroundTexture.Height);
-			spriteBatch.Draw(!Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture, dimensions.Position(), null, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 
 			if (!Item.IsAir)
 			{

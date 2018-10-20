@@ -8,7 +8,7 @@ namespace ContainerLibrary
 {
 	public class FluidHandler
 	{
-		public List<ModFluid> stacks;
+		public List<ModFluid> tanks;
 
 		public Action<int> OnContentsChanged = slot => { };
 		public Func<int, int> GetSlotLimit = slot => -1;
@@ -20,16 +20,16 @@ namespace ContainerLibrary
 
 		public FluidHandler(int size)
 		{
-			stacks = new List<ModFluid>(size);
-			for (int i = 0; i < size; i++) stacks.Add(null);
+			tanks = new List<ModFluid>(size);
+			for (int i = 0; i < size; i++) tanks.Add(null);
 		}
 
-		public FluidHandler(List<ModFluid> stacks)
+		public FluidHandler(List<ModFluid> tanks)
 		{
-			this.stacks = stacks;
+			this.tanks = tanks;
 		}
 
-		public FluidHandler Clone() => new FluidHandler(stacks.Select(x => x.Clone()).ToList())
+		public FluidHandler Clone() => new FluidHandler(tanks.Select(x => x?.Clone()).ToList())
 		{
 			IsFluidValid = (Func<FluidHandler, int, ModFluid, bool>)IsFluidValid.Clone(),
 			GetSlotLimit = (Func<int, int>)GetSlotLimit.Clone(),
@@ -38,23 +38,23 @@ namespace ContainerLibrary
 
 		public void SetSize(int size)
 		{
-			stacks = new List<ModFluid>(size);
-			for (int i = 0; i < size; i++) stacks.Add(null);
+			tanks = new List<ModFluid>(size);
+			for (int i = 0; i < size; i++) tanks.Add(null);
 		}
 
 		public void SetFluidInSlot(int slot, ModFluid stack)
 		{
 			ValidateSlotIndex(slot);
-			stacks[slot] = stack;
+			tanks[slot] = stack;
 			OnContentsChanged(slot);
 		}
 
-		public int GetSlots() => stacks.Count;
+		public int GetSlots() => tanks.Count;
 
 		public ModFluid GetFluidInSlot(int slot)
 		{
 			ValidateSlotIndex(slot);
-			return stacks[slot];
+			return tanks[slot];
 		}
 
 		public static bool CanFluidsStack(ModFluid a, ModFluid b)
@@ -82,7 +82,7 @@ namespace ContainerLibrary
 
 			if (!IsFluidValid(this, slot, stack)) return stack;
 
-			ModFluid existing = stacks[slot];
+			ModFluid existing = tanks[slot];
 
 			int limit = GetStackLimit(slot, stack);
 
@@ -101,7 +101,7 @@ namespace ContainerLibrary
 
 			if (!simulate)
 			{
-				if (existing == null) stacks[slot] = reachedLimit ? CopyFluidWithSize(stack, limit) : stack;
+				if (existing == null) tanks[slot] = reachedLimit ? CopyFluidWithSize(stack, limit) : stack;
 				else existing.Grow(reachedLimit ? limit : stack.volume);
 
 				OnContentsChanged(slot);
@@ -116,17 +116,17 @@ namespace ContainerLibrary
 
 			ValidateSlotIndex(slot);
 
-			ModFluid existing = stacks[slot];
+			ModFluid existing = tanks[slot];
 
 			if (existing == null) return null;
 
-			int toExtract = Math.Min(amount, existing.maxVolume);
+			int toExtract = Math.Min(amount, GetStackLimit(slot,existing));
 
 			if (existing.volume <= toExtract)
 			{
 				if (!simulate)
 				{
-					stacks[slot] = null;
+					tanks[slot] = null;
 					OnContentsChanged(slot);
 				}
 
@@ -135,7 +135,7 @@ namespace ContainerLibrary
 
 			if (!simulate)
 			{
-				stacks[slot] = CopyFluidWithSize(existing, existing.volume - toExtract);
+				tanks[slot] = CopyFluidWithSize(existing, existing.volume - toExtract);
 				OnContentsChanged(slot);
 			}
 
@@ -144,28 +144,28 @@ namespace ContainerLibrary
 
 		protected int GetStackLimit(int slot, ModFluid stack)
 		{
-			return GetSlotLimit(slot) == -1 ? stack.maxVolume : Math.Min(GetSlotLimit(slot), stack.maxVolume);
+			return GetSlotLimit(slot) /*== -1 ? stack.maxVolume : Math.Min(GetSlotLimit(slot), stack.maxVolume)*/;
 		}
 
 		public TagCompound Save() => new TagCompound
 		{
-			["Fluids"] = stacks.Select((fluid, slot) => new TagCompound
+			["Fluids"] = tanks.Select((fluid, slot) => new TagCompound
 			{
 				["Slot"] = slot,
 				["Fluid"] = fluid
 			}).ToList(),
-			["Count"] = stacks.Count
+			["Count"] = tanks.Count
 		};
 
 		public FluidHandler Load(TagCompound tag)
 		{
-			SetSize(tag.ContainsKey("Count") ? tag.GetInt("Count") : stacks.Count);
+			SetSize(tag.ContainsKey("Count") ? tag.GetInt("Count") : tanks.Count);
 			foreach (TagCompound compound in tag.GetList<TagCompound>("Fluids"))
 			{
 				ModFluid fluid = tag.Get<ModFluid>("Fluid");
 				int slot = compound.GetInt("Slot");
 
-				if (slot >= 0 && slot < stacks.Count) stacks[slot] = fluid;
+				if (slot >= 0 && slot < tanks.Count) tanks[slot] = fluid;
 			}
 
 			return this;
@@ -173,7 +173,7 @@ namespace ContainerLibrary
 
 		protected void ValidateSlotIndex(int slot)
 		{
-			if (slot < 0 || slot >= stacks.Count) throw new Exception($"Slot {slot} not in valid range - [0,{stacks.Count - 1})");
+			if (slot < 0 || slot >= tanks.Count) throw new Exception($"Slot {slot} not in valid range - [0,{tanks.Count - 1})");
 		}
 	}
 }

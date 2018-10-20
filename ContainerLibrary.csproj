@@ -60,6 +60,7 @@
     <Compile Include="Content\UIContainerSlot.cs" />
     <Compile Include="Content\ItemUtility.cs" />
     <Compile Include="Content\FluidUtility.cs" />
+    <Compile Include="Content\UITank.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
