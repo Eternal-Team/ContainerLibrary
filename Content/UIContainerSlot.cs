@@ -1,8 +1,8 @@
-﻿using BaseLibrary.UI.Elements;
+﻿using System;
+using BaseLibrary.UI.Elements;
 using BaseLibrary.Utility;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.GameContent.Achievements;
 using Terraria.ID;
@@ -18,7 +18,9 @@ namespace ContainerLibrary
 
 		public Texture2D backgroundTexture = Main.inventoryBackTexture;
 
-		public ItemHandler Handler;
+		private IItemHandler itemHandler;
+		public ItemHandler Handler => itemHandler.Handler;
+
 		public int slot;
 
 		public event Action OnInteract;
@@ -30,12 +32,12 @@ namespace ContainerLibrary
 			set => Handler.SetItemInSlot(slot, value);
 		}
 
-		public UIContainerSlot(ItemHandler handler, int slot = 0)
+		public UIContainerSlot(IItemHandler handler, int slot = 0)
 		{
 			Width = Height = (40, 0);
 
 			this.slot = slot;
-			Handler = handler;
+			itemHandler = handler;
 		}
 
 		public override void Click(UIMouseEvent evt)

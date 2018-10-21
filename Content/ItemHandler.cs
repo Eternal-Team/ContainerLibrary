@@ -6,6 +6,11 @@ using Terraria.ModLoader.IO;
 
 namespace ContainerLibrary
 {
+	public interface IItemHandler
+	{
+		ItemHandler Handler { get; }
+	}
+
 	public class ItemHandler
 	{
 		public List<Item> stacks;

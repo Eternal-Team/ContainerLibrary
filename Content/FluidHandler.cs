@@ -6,6 +6,11 @@ using Terraria.ModLoader.IO;
 
 namespace ContainerLibrary
 {
+	public interface IFluidHandler
+	{
+		FluidHandler Handler { get; }
+	}
+
 	public class FluidHandler
 	{
 		public List<ModFluid> tanks;
@@ -120,7 +125,7 @@ namespace ContainerLibrary
 
 			if (existing == null) return null;
 
-			int toExtract = Math.Min(amount, GetStackLimit(slot,existing));
+			int toExtract = Math.Min(amount, GetStackLimit(slot, existing));
 
 			if (existing.volume <= toExtract)
 			{
