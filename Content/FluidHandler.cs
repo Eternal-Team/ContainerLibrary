@@ -167,7 +167,7 @@ namespace ContainerLibrary
 			SetSize(tag.ContainsKey("Count") ? tag.GetInt("Count") : tanks.Count);
 			foreach (TagCompound compound in tag.GetList<TagCompound>("Fluids"))
 			{
-				ModFluid fluid = tag.Get<ModFluid>("Fluid");
+				ModFluid fluid = compound.Get<ModFluid>("Fluid");
 				int slot = compound.GetInt("Slot");
 
 				if (slot >= 0 && slot < tanks.Count) tanks[slot] = fluid;

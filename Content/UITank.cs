@@ -3,9 +3,10 @@ using FluidLibrary.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.Localization;
+using Terraria.ModLoader;
 using Terraria.UI;
-using static BaseLibrary.Utility.Utility;
+using static BaseLibrary.Utility;
+using static ContainerLibrary.ContainerLibrary;
 
 namespace ContainerLibrary
 {
@@ -28,31 +29,61 @@ namespace ContainerLibrary
 
 			this.slot = slot;
 			fluidHandler = handler;
+
+			Main.OnRenderTargetsInitialized += (width, height) => tankTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, width, height, false, Main.graphics.GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.Depth24);
+			Main.OnRenderTargetsReleased += () => tankTarget?.Dispose();
 		}
 
 		public override int CompareTo(object obj) => slot.CompareTo(((UITank)obj).slot);
 
+		public RenderTarget2D tankTarget;
+
+		public void DrawTarget(SpriteBatch spriteBatch)
+		{
+			CalculatedStyle dimensions = GetDimensions();
+		}
+
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
-			CalculatedStyle dimensions = GetInnerDimensions();
+			CalculatedStyle dimensions = GetDimensions();
 
-			spriteBatch.DrawSlot(dimensions);
+			Main.graphics.GraphicsDevice.SetRenderTarget(tankTarget);
+			Main.graphics.GraphicsDevice.Clear(Color.Transparent);
+
+			spriteBatch.End();
+			spriteBatch.Begin();
+
+			spriteBatch.DrawSlot(new Rectangle(0, 0, (int)dimensions.Width, (int)dimensions.Height), Color.White, Main.inventoryBackTexture);
+
+			spriteBatch.End();
+			spriteBatch.Begin();
+
+			Main.graphics.GraphicsDevice.SetRenderTarget(ModLoader.GetMod("PortableStorage").GetValue<RenderTarget2D>("uiTarget"));
+
+			barShader.Parameters["barColor"].SetValue(ColorSlot.ToVector4());
+			barShader.Parameters["progress"].SetValue((Fluid?.volume ?? 0) / (float)Handler.GetSlotLimit(slot));
+			barShader.Parameters["texOverlay"].SetValue((Texture2D)null);
 
 			if (Fluid != null)
 			{
-				Texture2D texture = FluidLoader.textureCache[Fluid.Texture];
-				float scale = (float)Fluid.volume / Handler.GetSlotLimit(slot);
-
-				spriteBatch.Draw(texture, new Rectangle((int)dimensions.X, (int)dimensions.Y, (int)dimensions.Width, (int)(dimensions.Height * scale)), Color.White);
+				barShader.Parameters["texOverlay"].SetValue(FluidLoader.textureCache[Fluid.Texture]);
 			}
+
+			spriteBatch.End();
+			spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.LinearClamp, null, RasterizerState.CullNone, barShader, Main.UIScaleMatrix);
+
+			if (tankTarget != null) spriteBatch.Draw(tankTarget, dimensions.ToRectangle(), Color.White);
+
+			spriteBatch.End();
+			spriteBatch.Begin();
 
 			if (IsMouseHovering)
 			{
 				Main.LocalPlayer.showItemIcon = false;
 				Main.ItemIconCacheUpdate(0);
 
-				if (Fluid != null) DrawMouseText($"Fluid: {Fluid.DisplayName.GetTranslation(Language.ActiveCulture)}\n{Fluid.volume / 255f:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B");
-				else DrawMouseText($"Fluid: None\n{0:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B");
+				//.GetTranslation(Language.ActiveCulture)
+				DrawMouseText(Fluid != null ? $"Fluid: {Fluid.DisplayName}\n{Fluid.VolumeBuckets:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B" : $"Fluid: None\n{0:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B");
 			}
 		}
 	}

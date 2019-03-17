@@ -1,6 +1,6 @@
 ﻿using System;
+using BaseLibrary;
 using BaseLibrary.UI.Elements;
-using BaseLibrary.Utility;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -227,7 +227,7 @@ namespace ContainerLibrary
 		{
 			CalculatedStyle dimensions = GetInnerDimensions();
 
-			spriteBatch.DrawSlot(dimensions, !Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture);
+			spriteBatch.DrawSlot(dimensions, Color.White, !Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture);
 
 			float scale = Math.Min(dimensions.Width / backgroundTexture.Width, dimensions.Height / backgroundTexture.Height);
 

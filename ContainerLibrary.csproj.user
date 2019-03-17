@@ -2,8 +2,15 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartAction>Program</StartAction>
+    <StartProgram>C:\Program Files %28x86%29\Steam\steamapps\common\Terraria\Terraria.exe</StartProgram>
+    <StartArguments>
+    </StartArguments>
+    <StartWorkingDirectory>C:\Program Files %28x86%29\Steam\steamapps\common\Terraria\</StartWorkingDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <StartProgram>C:\Program Files %28x86%29\Steam\steamapps\content\app_105600\depot_105601\tModLoader.exe</StartProgram>
-    <StartArguments>-skipselect Itorius:TestWorld</StartArguments>
     <StartWorkingDirectory>C:\Program Files %28x86%29\Steam\steamapps\content\app_105600\depot_105601</StartWorkingDirectory>
+    <StartArguments>-skipselect Itorius:TestWorld</StartArguments>
+    <StartAction>Program</StartAction>
   </PropertyGroup>
 </Project>
