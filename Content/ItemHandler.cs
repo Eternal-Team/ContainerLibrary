@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Terraria;
 using Terraria.ModLoader.IO;
@@ -172,6 +173,20 @@ namespace ContainerLibrary
 			}
 
 			return this;
+		}
+
+		public void Serialize(BinaryWriter writer)
+		{
+			writer.Write(stacks.Count);
+			for (int i = 0; i < stacks.Count; i++) writer.WriteItem(stacks[i], true, true);
+		}
+
+		public void Deserialize(BinaryReader reader)
+		{
+			int size = reader.ReadInt32();
+			SetSize(size);
+
+			for (int i = 0; i < stacks.Count; i++) stacks[i] = reader.ReadItem(true, true);
 		}
 
 		protected void ValidateSlotIndex(int slot)
