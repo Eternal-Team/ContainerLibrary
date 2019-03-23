@@ -541,5 +541,18 @@ namespace ContainerLibrary
 				}
 			}
 		}
+
+		public static bool HasSpace(this ItemHandler handler, Item item)
+		{
+			return handler.stacks.Any((item1, i) => (item1.IsAir || item1.type == item.type && item1.stack < item1.maxStack) && handler.IsItemValid(handler, i, item));
+		}
+
+		public static bool Any<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
+		{
+			if (source == null || predicate == null) throw new ArgumentNullException();
+
+			int index = 0;
+			return source.Any(element => predicate(element, index++));
+		}
 	}
 }

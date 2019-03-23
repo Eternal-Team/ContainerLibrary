@@ -105,94 +105,9 @@ namespace ContainerLibrary
 					return;
 				}
 
-				if (Item.maxStack == 1 && Main.mouseRight && Main.mouseRightRelease)
-				{
-					if (Item.dye > 0)
-					{
-						object[] param = { Item, false };
-						Item = typeof(ItemSlot).InvokeMethod<Item>("DyeSwap", param);
-
-						if ((bool)param[1])
-						{
-							Main.EquipPageSelected = 0;
-							AchievementsHelper.HandleOnEquip(player, Item, 12);
-						}
-					}
-					else if (Main.projHook[Item.shoot])
-					{
-						object[] param = { Item, player.miscEquips, 4, false };
-						Item = typeof(ItemSlot).InvokeMethod<Item>("EquipSwap", param);
-
-						if ((bool)param[3])
-						{
-							Main.EquipPageSelected = 2;
-							AchievementsHelper.HandleOnEquip(player, Item, 16);
-						}
-					}
-					else if (Item.mountType != -1 && !MountID.Sets.Cart[Item.mountType])
-					{
-						object[] param = { Item, player.miscEquips, 3, false };
-						Item = typeof(ItemSlot).InvokeMethod<Item>("EquipSwap", param);
-
-						if ((bool)param[3])
-						{
-							Main.EquipPageSelected = 2;
-							AchievementsHelper.HandleOnEquip(player, Item, 17);
-						}
-					}
-					else if (Item.mountType != -1 && MountID.Sets.Cart[Item.mountType])
-					{
-						object[] param = { Item, player.miscEquips, 2, false };
-						Item = typeof(ItemSlot).InvokeMethod<Item>("EquipSwap", param);
-
-						if ((bool)param[3])
-						{
-							Main.EquipPageSelected = 2;
-						}
-					}
-					else if (Item.buffType > 0 && Main.lightPet[Item.buffType])
-					{
-						object[] param = { Item, player.miscEquips, 1, false };
-						Item = typeof(ItemSlot).InvokeMethod<Item>("EquipSwap", param);
-
-						if ((bool)param[3])
-						{
-							Main.EquipPageSelected = 2;
-						}
-					}
-					else if (Item.buffType > 0 && Main.vanityPet[Item.buffType])
-					{
-						object[] param = { Item, player.miscEquips, 0, false };
-						Item = typeof(ItemSlot).InvokeMethod<Item>("EquipSwap", param);
-
-						if ((bool)param[3])
-						{
-							Main.EquipPageSelected = 2;
-						}
-					}
-					else
-					{
-						Item item1 = Item;
-						object[] param = { Item, false };
-						Item = typeof(ItemSlot).InvokeMethod<Item>("ArmorSwap", param);
-
-						if ((bool)param[1])
-						{
-							Main.EquipPageSelected = 0;
-							AchievementsHelper.HandleOnEquip(player, item1, item1.accessory ? 10 : 8);
-						}
-					}
-
-					Recipe.FindRecipes();
-
-					OnInteract?.Invoke();
-					Handler.OnContentsChanged?.Invoke(slot);
-					return;
-				}
-
 				if (Main.stackSplit <= 1 && Main.mouseRight)
 				{
-					if (Item.maxStack > 1 && (Main.mouseItem.IsTheSameAs(Item) || Main.mouseItem.type == 0) && (Main.mouseItem.stack < Main.mouseItem.maxStack || Main.mouseItem.type == 0))
+					if ((Main.mouseItem.IsTheSameAs(Item) || Main.mouseItem.type == 0) && (Main.mouseItem.stack < Main.mouseItem.maxStack || Main.mouseItem.type == 0))
 					{
 						if (Main.mouseItem.type == 0)
 						{
