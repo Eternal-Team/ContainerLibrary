@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ModLoader.IO;
 
@@ -10,6 +11,12 @@ namespace ContainerLibrary
 	public interface IItemHandler
 	{
 		ItemHandler Handler { get; }
+	}
+
+	public interface IItemHandlerUI
+	{
+		ItemHandler Handler { get; }
+		Texture2D ShiftClickIcon { get; }
 	}
 
 	public class ItemHandler

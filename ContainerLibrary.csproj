@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-<Import Project="$(MSBuildExtensionsPath)$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="$(MSBuildExtensionsPath)$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="C:\Users\Itorius\Documents\My Games\Terraria\ModLoader\references\tModLoader.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -26,12 +26,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ContainerLibrary.cs" />
-    <Compile Include="Content\FluidHandler.cs" />
-    <Compile Include="Content\ItemHandler.cs" />
-    <Compile Include="Content\UIContainerSlot.cs" />
-    <Compile Include="Content\ItemUtility.cs" />
-    <Compile Include="Content\FluidUtility.cs" />
-    <Compile Include="Content\UITank.cs" />
+    <Compile Include="Fluid\FluidHandler.cs" />
+    <Compile Include="Hooking.cs" />
+    <Compile Include="Item\ItemHandler.cs" />
+    <Compile Include="Item\UIContainerSlot.cs" />
+    <Compile Include="Item\ItemUtility.cs" />
+    <Compile Include="Fluid\FluidUtility.cs" />
+    <Compile Include="Fluid\UITank.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -49,7 +50,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-   <PropertyGroup>
+  <PropertyGroup>
     <PostBuildEvent>"C:\Program Files (x86)\Steam\steamapps\common\Terraria\TerrariaServer.exe" -build "$(ProjectDir)\" -eac "$(TargetPath)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

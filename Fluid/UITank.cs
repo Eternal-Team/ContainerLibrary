@@ -1,12 +1,11 @@
-﻿using BaseLibrary.UI.Elements;
+﻿using BaseLibrary;
+using BaseLibrary.UI.Elements;
 using FluidLibrary.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
-using static BaseLibrary.Utility;
-using static ContainerLibrary.ContainerLibrary;
 
 namespace ContainerLibrary
 {
@@ -60,17 +59,17 @@ namespace ContainerLibrary
 
 			Main.graphics.GraphicsDevice.SetRenderTarget(ModLoader.GetMod("PortableStorage").GetValue<RenderTarget2D>("uiTarget"));
 
-			barShader.Parameters["barColor"].SetValue(ColorSlot.ToVector4());
-			barShader.Parameters["progress"].SetValue((Fluid?.volume ?? 0) / (float)Handler.GetSlotLimit(slot));
-			barShader.Parameters["texOverlay"].SetValue((Texture2D)null);
+			ContainerLibrary.barShader.Parameters["barColor"].SetValue(BaseLibrary.Utility.ColorSlot.ToVector4());
+			ContainerLibrary.barShader.Parameters["progress"].SetValue((Fluid?.volume ?? 0) / (float)Handler.GetSlotLimit(slot));
+			ContainerLibrary.barShader.Parameters["texOverlay"].SetValue((Texture2D)null);
 
 			if (Fluid != null)
 			{
-				barShader.Parameters["texOverlay"].SetValue(FluidLoader.textureCache[Fluid.Texture]);
+				ContainerLibrary.barShader.Parameters["texOverlay"].SetValue(FluidLoader.textureCache[Fluid.Texture]);
 			}
 
 			spriteBatch.End();
-			spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.LinearClamp, null, RasterizerState.CullNone, barShader, Main.UIScaleMatrix);
+			spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.LinearClamp, null, RasterizerState.CullNone, ContainerLibrary.barShader, Main.UIScaleMatrix);
 
 			if (tankTarget != null) spriteBatch.Draw(tankTarget, dimensions.ToRectangle(), Color.White);
 
@@ -83,7 +82,7 @@ namespace ContainerLibrary
 				Main.ItemIconCacheUpdate(0);
 
 				//.GetTranslation(Language.ActiveCulture)
-				DrawMouseText(Fluid != null ? $"Fluid: {Fluid.DisplayName}\n{Fluid.VolumeBuckets:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B" : $"Fluid: None\n{0:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B");
+				BaseLibrary.Utility.DrawMouseText(Fluid != null ? $"Fluid: {Fluid.DisplayName}\n{Fluid.VolumeBuckets:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B" : $"Fluid: None\n{0:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B");
 			}
 		}
 	}

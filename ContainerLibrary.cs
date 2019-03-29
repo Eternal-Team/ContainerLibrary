@@ -1,16 +1,20 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using Terraria;
+using On.Terraria;
+using On.Terraria.UI;
 using Terraria.ModLoader;
 
 namespace ContainerLibrary
 {
-	public class ContainerLibrary : Mod
+	public partial class ContainerLibrary : Mod
 	{
 		public static Effect barShader;
 
 		public override void Load()
 		{
-			if (!Main.dedServ) barShader = GetEffect("Effects/BarShader");
+			ItemSlot.OverrideHover += ItemSlot_OverrideHover;
+			Main.DrawInterface_36_Cursor += Main_DrawInterface_36_Cursor;
+
+			if (!Terraria.Main.dedServ) barShader = GetEffect("Effects/BarShader");
 		}
 	}
 }
