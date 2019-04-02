@@ -14,12 +14,10 @@ namespace ContainerLibrary
 {
 	public class UIContainerSlot : BaseElement
 	{
-		// todo: mousewheel events
-
 		public Texture2D backgroundTexture = Main.inventoryBackTexture;
 
-		private IItemHandler itemHandler;
-		public ItemHandler Handler => itemHandler.Handler;
+		private readonly Func<IItemHandler> ItemHandler;
+		private ItemHandler Handler => ItemHandler().Handler;
 
 		public int slot;
 
@@ -32,12 +30,12 @@ namespace ContainerLibrary
 			set => Handler.SetItemInSlot(slot, value);
 		}
 
-		public UIContainerSlot(IItemHandler handler, int slot = 0)
+		public UIContainerSlot(Func<IItemHandler> itemHandler, int slot = 0)
 		{
 			Width = Height = (40, 0);
 
 			this.slot = slot;
-			itemHandler = handler;
+			ItemHandler = itemHandler;
 		}
 
 		public override void Click(UIMouseEvent evt)
@@ -136,11 +134,44 @@ namespace ContainerLibrary
 			}
 		}
 
+		public override void ScrollWheel(UIScrollWheelEvent evt)
+		{
+			if (evt.ScrollWheelValue > 0)
+			{
+				if (Main.mouseItem.type == Item.type && Main.mouseItem.stack < Main.mouseItem.maxStack)
+				{
+					Main.mouseItem.stack++;
+					if (--Item.stack <= 0) Item.TurnToAir();
+				}
+				else if (Main.mouseItem.IsAir)
+				{
+					Main.mouseItem = Item.Clone();
+					Main.mouseItem.stack = 1;
+					if (--Item.stack <= 0) Item.TurnToAir();
+				}
+			}
+			else if (evt.ScrollWheelValue < 0)
+			{
+				if (Item.type == Main.mouseItem.type && Item.stack < Item.maxStack)
+				{
+					Item.stack++;
+					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
+				}
+				else if (Item.IsAir)
+				{
+					Item = Main.mouseItem.Clone();
+					Item.stack = 1;
+					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
+				}
+			}
+		}
+
 		public override int CompareTo(object obj) => slot.CompareTo(((UIContainerSlot)obj).slot);
 
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
-			CalculatedStyle dimensions = GetInnerDimensions();
+			CalculatedStyle dimensions = GetDimensions();
+			CalculatedStyle innerDimensions = GetInnerDimensions();
 
 			spriteBatch.DrawSlot(dimensions, Color.White, !Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture);
 
@@ -156,7 +187,8 @@ namespace ContainerLibrary
 				int height = rect.Height;
 				int width = rect.Width;
 				float drawScale = 1f;
-				float availableWidth = 32;
+
+				float availableWidth = innerDimensions.Width;
 				if (width > availableWidth || height > availableWidth)
 				{
 					if (width > height) drawScale = availableWidth / width;
