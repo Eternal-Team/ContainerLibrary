@@ -3,6 +3,7 @@ using BaseLibrary;
 using BaseLibrary.UI.Elements;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Starbound.Input;
 using Terraria;
 using Terraria.GameContent.Achievements;
 using Terraria.ID;
@@ -36,6 +37,40 @@ namespace ContainerLibrary
 
 			this.slot = slot;
 			ItemHandler = itemHandler;
+
+			//MouseEvents.MouseWheelMoved += (sender,args) =>
+			//{
+			//	if (!IsMouseHovering) return;
+
+			//	if (args.Delta > 0)
+			//	{
+			//		if (Main.mouseItem.type == Item.type && Main.mouseItem.stack < Main.mouseItem.maxStack)
+			//		{
+			//			Main.mouseItem.stack++;
+			//			if (--Item.stack <= 0) Item.TurnToAir();
+			//		}
+			//		else if (Main.mouseItem.IsAir)
+			//		{
+			//			Main.mouseItem = Item.Clone();
+			//			Main.mouseItem.stack = 1;
+			//			if (--Item.stack <= 0) Item.TurnToAir();
+			//		}
+			//	}
+			//	else if (args.Delta < 0)
+			//	{
+			//		if (Item.type == Main.mouseItem.type && Item.stack < Item.maxStack)
+			//		{
+			//			Item.stack++;
+			//			if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
+			//		}
+			//		else if (Item.IsAir)
+			//		{
+			//			Item = Main.mouseItem.Clone();
+			//			Item.stack = 1;
+			//			if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
+			//		}
+			//	}
+   //         };
 		}
 
 		public override void Click(UIMouseEvent evt)
@@ -131,38 +166,6 @@ namespace ContainerLibrary
 
 				OnInteract?.Invoke();
 				Handler.OnContentsChanged?.Invoke(slot);
-			}
-		}
-
-		public override void ScrollWheel(UIScrollWheelEvent evt)
-		{
-			if (evt.ScrollWheelValue > 0)
-			{
-				if (Main.mouseItem.type == Item.type && Main.mouseItem.stack < Main.mouseItem.maxStack)
-				{
-					Main.mouseItem.stack++;
-					if (--Item.stack <= 0) Item.TurnToAir();
-				}
-				else if (Main.mouseItem.IsAir)
-				{
-					Main.mouseItem = Item.Clone();
-					Main.mouseItem.stack = 1;
-					if (--Item.stack <= 0) Item.TurnToAir();
-				}
-			}
-			else if (evt.ScrollWheelValue < 0)
-			{
-				if (Item.type == Main.mouseItem.type && Item.stack < Item.maxStack)
-				{
-					Item.stack++;
-					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
-				}
-				else if (Item.IsAir)
-				{
-					Item = Main.mouseItem.Clone();
-					Item.stack = 1;
-					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
-				}
 			}
 		}
 

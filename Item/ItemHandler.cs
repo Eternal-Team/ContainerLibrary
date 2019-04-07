@@ -13,6 +13,11 @@ namespace ContainerLibrary
 		ItemHandler Handler { get; }
 	}
 
+	public interface ICraftingStorage
+	{
+		ItemHandler Handler { get; }
+	}
+
 	public interface IItemHandlerUI
 	{
 		ItemHandler Handler { get; }

@@ -14,6 +14,9 @@ namespace ContainerLibrary
 			ItemSlot.OverrideHover += ItemSlot_OverrideHover;
 			Main.DrawInterface_36_Cursor += Main_DrawInterface_36_Cursor;
 
+			Recipe.FindRecipes += Recipe_FindRecipes;
+			Recipe.Create += Recipe_Create;
+
 			if (!Terraria.Main.dedServ) barShader = GetEffect("Effects/BarShader");
 		}
 	}
