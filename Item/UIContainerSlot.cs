@@ -3,7 +3,6 @@ using BaseLibrary;
 using BaseLibrary.UI.Elements;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Starbound.Input;
 using Terraria;
 using Terraria.GameContent.Achievements;
 using Terraria.ID;
@@ -17,13 +16,16 @@ namespace ContainerLibrary
 	{
 		public Texture2D backgroundTexture = Main.inventoryBackTexture;
 
-		private readonly Func<IItemHandler> ItemHandler;
-		private ItemHandler Handler => ItemHandler().Handler;
+		private readonly Func<ItemHandler> FuncHandler;
+		public ItemHandler Handler => FuncHandler();
 
 		public int slot;
 
 		public event Action OnInteract;
 		public Func<bool> ClickOverride = () => false;
+		public Func<bool> RightClickOverride = () => false;
+
+		public Func<UIContainerSlot, UIContainerSlot, int> Comparer;
 
 		public Item Item
 		{
@@ -31,12 +33,12 @@ namespace ContainerLibrary
 			set => Handler.SetItemInSlot(slot, value);
 		}
 
-		public UIContainerSlot(Func<IItemHandler> itemHandler, int slot = 0)
+		public UIContainerSlot(Func<ItemHandler> itemHandler, int slot = 0)
 		{
 			Width = Height = (40, 0);
 
 			this.slot = slot;
-			ItemHandler = itemHandler;
+			FuncHandler = itemHandler;
 
 			//MouseEvents.MouseWheelMoved += (sender,args) =>
 			//{
@@ -70,13 +72,13 @@ namespace ContainerLibrary
 			//			if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
 			//		}
 			//	}
-   //         };
+			//         };
 		}
 
 		public override void Click(UIMouseEvent evt)
 		{
 			if (ClickOverride()) return;
-			if (Handler.IsItemValid(Handler, slot, Main.mouseItem) || Main.mouseItem.IsAir)
+			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
 				Item.newAndShiny = false;
 				Player player = Main.LocalPlayer;
@@ -111,11 +113,14 @@ namespace ContainerLibrary
 				OnInteract?.Invoke();
 				Handler.OnContentsChanged?.Invoke(slot);
 			}
+
+			base.Click(evt);
 		}
 
 		public override void RightClickContinuous(UIMouseEvent evt)
 		{
-			if (Handler.IsItemValid(Handler, slot, Main.mouseItem) || Main.mouseItem.IsAir)
+			if (RightClickOverride()) return;
+			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
 				OnInteract?.Invoke();
 
@@ -169,7 +174,7 @@ namespace ContainerLibrary
 			}
 		}
 
-		public override int CompareTo(object obj) => slot.CompareTo(((UIContainerSlot)obj).slot);
+		public override int CompareTo(object obj) => Comparer?.Invoke(this, (UIContainerSlot)obj) ?? slot.CompareTo(((UIContainerSlot)obj).slot);
 
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{

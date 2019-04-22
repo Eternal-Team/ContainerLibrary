@@ -17,7 +17,7 @@ namespace ContainerLibrary
 {
 	public partial class ContainerLibrary
 	{
-		public static List<IItemHandlerUI> elements = new List<IItemHandlerUI>();
+		public static List<IItemHandlerUI> ItemHandlerUI = new List<IItemHandlerUI>();
 		public static IItemHandlerUI currentUI;
 
 		private static void ItemSlot_OverrideHover(ItemSlot.orig_OverrideHover orig, Item[] inv, int context, int slot)
@@ -32,7 +32,7 @@ namespace ContainerLibrary
 					case Terraria.UI.ItemSlot.Context.InventoryItem:
 					case Terraria.UI.ItemSlot.Context.InventoryCoin:
 					case Terraria.UI.ItemSlot.Context.InventoryAmmo:
-						if ((currentUI = elements.FirstOrDefault(ui => ui.Handler.HasSpace(item))) != null) Terraria.Main.cursorOverride = 1000;
+						if ((currentUI = ItemHandlerUI.FirstOrDefault(ui => ui.Handler.HasSpace(item))) != null) Terraria.Main.cursorOverride = 1000;
 						else if (Terraria.Main.npcShop > 0 && !item.favorited) Terraria.Main.cursorOverride = 10;
 						else if (Terraria.Main.player[Terraria.Main.myPlayer].chest != -1)
 						{
@@ -200,10 +200,10 @@ namespace ContainerLibrary
 					{
 						if (Terraria.Main.LocalPlayer.inventory[j].modItem is ICraftingStorage storage)
 						{
-							for (int index = 0; index < storage.Handler.stacks.Count; index++)
+							for (int index = 0; index < storage.Handler.Items.Count; index++)
 							{
 								if (amount <= 0) break;
-								Item invItem = storage.Handler.stacks[index];
+								Item invItem = storage.Handler.Items[index];
 
 								if (invItem.IsTheSameAs(item) || self.useWood(invItem.type, item.type) || self.useSand(invItem.type, item.type) || self.useIronBar(invItem.type, item.type) || self.usePressurePlate(invItem.type, item.type) || self.useFragment(invItem.type, item.type) || self.AcceptedByItemGroups(invItem.type, item.type))
 								{
@@ -285,9 +285,9 @@ namespace ContainerLibrary
 				{
 					if (Terraria.Main.LocalPlayer.inventory[j].modItem is ICraftingStorage storage)
 					{
-						for (int i = 0; i < storage.Handler.stacks.Count; i++)
+						for (int i = 0; i < storage.Handler.Items.Count; i++)
 						{
-							item = storage.Handler.stacks[i];
+							item = storage.Handler.Items[i];
 							if (item.stack > 0)
 							{
 								if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;

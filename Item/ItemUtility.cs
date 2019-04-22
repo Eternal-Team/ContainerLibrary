@@ -73,7 +73,7 @@ namespace ContainerLibrary
 
 		public static void MoveCoins(List<Item> from, ItemHandler handler)
 		{
-			List<Item> containerInv = handler.stacks;
+			List<Item> containerInv = handler.Items;
 			int[] coins = new int[4];
 
 			List<int> coinSlotsPlayer = new List<int>();
@@ -254,7 +254,7 @@ namespace ContainerLibrary
 		{
 			Player player = Main.LocalPlayer;
 			Item[] inventory = player.inventory;
-			List<Item> item = handler.stacks;
+			List<Item> item = handler.Items;
 
 			HashSet<int> restackableItems = new HashSet<int>();
 			List<int> canRestackIndex = new List<int>();
@@ -351,7 +351,7 @@ namespace ContainerLibrary
 		{
 			if (Main.LocalPlayer.IsStackingItems()) return;
 
-			List<Item> Items = handler.stacks;
+			List<Item> Items = handler.Items;
 
 			bool stacked = false;
 			for (int i = 0; i < Items.Count; i++)
@@ -373,7 +373,7 @@ namespace ContainerLibrary
 		public static void QuickRestack(ItemHandler handler)
 		{
 			if (Main.LocalPlayer.IsStackingItems()) return;
-			List<Item> Items = handler.stacks;
+			List<Item> Items = handler.Items;
 
 			bool stacked = false;
 			for (int i = 0; i < Items.Count; i++)
@@ -449,7 +449,7 @@ namespace ContainerLibrary
 		{
 			Player player = Main.LocalPlayer;
 
-			List<Item> Items = handler.stacks;
+			List<Item> Items = handler.Items;
 
 			for (int i = 0; i < Items.Count; i++)
 			{
@@ -470,7 +470,7 @@ namespace ContainerLibrary
 		public static void DepositAll(ItemHandler handler, Func<Item, bool> selector = null)
 		{
 			Player player = Main.LocalPlayer;
-			List<Item> Items = handler.stacks;
+			List<Item> Items = handler.Items;
 
 			MoveCoins(player.inventory.Take(player.inventory.Length - 1).ToList(), handler);
 
@@ -529,7 +529,7 @@ namespace ContainerLibrary
 
 		public static void DropItems(this ItemHandler handler, Rectangle hitbox)
 		{
-			List<Item> list = handler.stacks;
+			List<Item> list = handler.Items;
 			for (var i = 0; i < list.Count; i++)
 			{
 				Item item = list[i];
@@ -544,7 +544,7 @@ namespace ContainerLibrary
 
 		public static bool HasSpace(this ItemHandler handler, Item item)
 		{
-			return handler.stacks.Any((item1, i) => (item1.IsAir || item1.type == item.type && item1.stack < item1.maxStack) && handler.IsItemValid(handler, i, item));
+			return handler.Items.Any((item1, i) => (item1.IsAir || item1.type == item.type && item1.stack < item1.maxStack) && handler.IsItemValid(i, item));
 		}
 
 		public static bool Any<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
