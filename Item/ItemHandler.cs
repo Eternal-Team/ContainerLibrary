@@ -15,7 +15,7 @@ namespace ContainerLibrary
 
 	public interface ICraftingStorage
 	{
-		ItemHandler Handler { get; }
+		ItemHandler CraftingHandler { get; }
 	}
 
 	public interface IItemHandlerUI
@@ -33,11 +33,7 @@ namespace ContainerLibrary
 		public Func<int, int> GetSlotLimit = slot => -1;
 		public Func<int, Item, bool> IsItemValid = (slot, item) => true;
 
-		public ItemHandler() : this(1)
-		{
-		}
-
-		public ItemHandler(int size)
+		public ItemHandler(int size = 1)
 		{
 			Items = new List<Item>(size);
 			for (int i = 0; i < size; i++) Items.Add(new Item());

@@ -20,6 +20,9 @@ namespace ContainerLibrary
 		public static List<IItemHandlerUI> ItemHandlerUI = new List<IItemHandlerUI>();
 		public static IItemHandlerUI currentUI;
 
+		public static Func<(int reductionPercent, bool reduce)> CheckAlchemy = () => (33, false);
+		public static Action ModifyAdjTiles;
+
 		private static void ItemSlot_OverrideHover(ItemSlot.orig_OverrideHover orig, Item[] inv, int context, int slot)
 		{
 			if (canFavoriteAt == null) canFavoriteAt = typeof(Terraria.UI.ItemSlot).GetValue<bool[]>("canFavoriteAt");
@@ -140,16 +143,17 @@ namespace ContainerLibrary
 			for (int i = 0; i < Terraria.Recipe.maxRequirements; i++)
 			{
 				Item item = self.requiredItem[i];
+
 				if (item.type == 0) break;
 				int amount = item.stack;
 				if (self is ModRecipe modRecipe) amount = modRecipe.ConsumeItem(item.type, item.stack);
-				if (self.alchemy && Terraria.Main.LocalPlayer.alchemyTable)
+				(int reductionPercent, bool reduce) = CheckAlchemy();
+				if (self.alchemy && Terraria.Main.LocalPlayer.alchemyTable || reduce)
 				{
-					// note: hook alchemist bag here
 					int num2 = 0;
 					for (int j = 0; j < amount; j++)
 					{
-						if (Terraria.Main.rand.Next(3) == 0) num2++;
+						if (Terraria.Main.rand.Next(100 / reductionPercent) == 0) num2++;
 					}
 
 					amount -= num2;
@@ -200,16 +204,16 @@ namespace ContainerLibrary
 					{
 						if (Terraria.Main.LocalPlayer.inventory[j].modItem is ICraftingStorage storage)
 						{
-							for (int index = 0; index < storage.Handler.Items.Count; index++)
+							for (int index = 0; index < storage.CraftingHandler.Items.Count; index++)
 							{
 								if (amount <= 0) break;
-								Item invItem = storage.Handler.Items[index];
+								Item invItem = storage.CraftingHandler.Items[index];
 
 								if (invItem.IsTheSameAs(item) || self.useWood(invItem.type, item.type) || self.useSand(invItem.type, item.type) || self.useIronBar(invItem.type, item.type) || self.usePressurePlate(invItem.type, item.type) || self.useFragment(invItem.type, item.type) || self.AcceptedByItemGroups(invItem.type, item.type))
 								{
 									int count = Math.Min(amount, invItem.stack);
 									amount -= count;
-									storage.Handler.ExtractItem(index, count);
+									storage.CraftingHandler.ExtractItem(index, count);
 								}
 							}
 						}
@@ -285,9 +289,9 @@ namespace ContainerLibrary
 				{
 					if (Terraria.Main.LocalPlayer.inventory[j].modItem is ICraftingStorage storage)
 					{
-						for (int i = 0; i < storage.Handler.Items.Count; i++)
+						for (int i = 0; i < storage.CraftingHandler.Items.Count; i++)
 						{
-							item = storage.Handler.Items[i];
+							item = storage.CraftingHandler.Items[i];
 							if (item.stack > 0)
 							{
 								if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;
@@ -302,10 +306,12 @@ namespace ContainerLibrary
 				{
 					bool hasTile = true;
 					int tileIndex = 0;
+					ModifyAdjTiles?.Invoke();
 					while (tileIndex < Terraria.Recipe.maxRequirements && Terraria.Main.recipe[index].requiredTile[tileIndex] != -1)
 					{
-						// note: hook alchemist bag here
-						if (!Terraria.Main.player[Terraria.Main.myPlayer].adjTile[Terraria.Main.recipe[index].requiredTile[tileIndex]])
+						if(Terraria.Main.recipe[index].createItem.type==ItemID.LesserHealingPotion)Terraria.Main.NewText(Terraria.Main.recipe[index].requiredTile[tileIndex]);
+
+						if (!Terraria.Main.LocalPlayer.adjTile[Terraria.Main.recipe[index].requiredTile[tileIndex]])
 						{
 							hasTile = false;
 							break;
