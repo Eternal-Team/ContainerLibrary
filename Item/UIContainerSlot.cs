@@ -1,8 +1,8 @@
-﻿using System;
-using BaseLibrary;
+﻿using BaseLibrary;
 using BaseLibrary.UI.Elements;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
 using Terraria.GameContent.Achievements;
 using Terraria.ID;
@@ -15,6 +15,8 @@ namespace ContainerLibrary
 	public class UIContainerSlot : BaseElement
 	{
 		public Texture2D backgroundTexture = Main.inventoryBackTexture;
+
+		public bool ShortStackSize = false;
 
 		private readonly Func<ItemHandler> FuncHandler;
 		public ItemHandler Handler => FuncHandler();
@@ -216,7 +218,7 @@ namespace ContainerLibrary
 
 				ItemLoader.PostDrawInInventory(Item, spriteBatch, position2, rect, Item.GetAlpha(newColor), Item.GetColor(Color.White), origin, drawScale * pulseScale);
 				if (ItemID.Sets.TrapSigned[Item.type]) spriteBatch.Draw(Main.wireTexture, dimensions.Position() + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
-				if (Item.stack > 1) ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, Item.stack.ToString(), dimensions.Position() + new Vector2(10f, 26f) * scale, Color.White, 0f, Vector2.Zero, new Vector2(scale), -1f, scale);
+				if (Item.stack > 1) ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, !ShortStackSize || Item.stack < 1000 ? Item.stack.ToString() : Item.stack.ToSI("N1"), dimensions.Position() + new Vector2(10f, 26f) * scale, Color.White, 0f, Vector2.Zero, new Vector2(scale), -1f, scale);
 
 				if (IsMouseHovering)
 				{

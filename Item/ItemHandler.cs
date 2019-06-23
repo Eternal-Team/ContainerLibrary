@@ -21,7 +21,6 @@ namespace ContainerLibrary
 	public interface IItemHandlerUI
 	{
 		ItemHandler Handler { get; }
-		Texture2D ShiftClickIcon { get; }
 	}
 
 	public class ItemHandler

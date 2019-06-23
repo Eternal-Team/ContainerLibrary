@@ -554,5 +554,22 @@ namespace ContainerLibrary
 			int index = 0;
 			return source.Any(element => predicate(element, index++));
 		}
+
+		public static void InsertItem(this ItemHandler Handler, ref Item item)
+		{
+			Item temp = item;
+			int index = Handler.Items.FindIndex(other => other.type == temp.type && other.stack < other.maxStack);
+			if (index != -1)
+			{
+				item = Handler.InsertItem(index, item);
+				if (item.IsAir || !item.active) item.active = false;
+			}
+
+			for (int i = 0; i < Handler.Slots; i++)
+			{
+				item = Handler.InsertItem(i, item);
+				if (item.IsAir) item.active = false;
+			}
+		}
 	}
 }
