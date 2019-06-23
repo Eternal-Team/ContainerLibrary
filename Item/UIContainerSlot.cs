@@ -2,6 +2,7 @@
 using BaseLibrary.UI.Elements;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using Terraria;
 using Terraria.GameContent.Achievements;
@@ -226,6 +227,12 @@ namespace ContainerLibrary
 					Main.ItemIconCacheUpdate(0);
 					Main.HoverItem = Item.Clone();
 					Main.hoverItemName = Main.HoverItem.Name;
+
+					if (ItemSlot.ShiftInUse)
+					{
+						Main.cursorOverride = BaseLibrary.Hooking.CustomCursorOverride;
+						BaseLibrary.Hooking.CurrrentShiftClickIcon = "Terraria/UI/Cursor_7";
+					}
 				}
 			}
 		}
