@@ -152,6 +152,25 @@ namespace ContainerLibrary
 			return CopyItemWithSize(existing, toExtract);
 		}
 
+		public void InsertItem(ref Item stack)
+		{
+			for (int i = 0; i < Slots; i++)
+			{
+				Item other = Items[i];
+				if (other.type == stack.type && other.stack < other.maxStack)
+				{
+					stack = InsertItem(i, stack);
+					if (stack.IsAir || !stack.active) return;
+				}
+			}
+			
+			for (int i = 0; i < Slots; i++)
+			{
+				stack = InsertItem(i, stack);
+				if (stack.IsAir) return;
+			}
+		}
+
 		protected int GetItemLimit(int slot, Item stack) => GetSlotLimit(slot) == -1 ? stack.maxStack : GetSlotLimit(slot);
 
 		public TagCompound Save()

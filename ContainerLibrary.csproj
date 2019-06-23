@@ -26,6 +26,7 @@
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CLPlayer.cs" />
     <Compile Include="ContainerLibrary.cs" />
     <Compile Include="Fluid\FluidHandler.cs" />
     <Compile Include="Hooking.cs" />
