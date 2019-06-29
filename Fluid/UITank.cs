@@ -37,22 +37,15 @@ namespace ContainerLibrary
 
 		public RenderTarget2D tankTarget;
 
-		public void DrawTarget(SpriteBatch spriteBatch)
-		{
-			CalculatedStyle dimensions = GetDimensions();
-		}
-
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
-			CalculatedStyle dimensions = GetDimensions();
-
 			Main.graphics.GraphicsDevice.SetRenderTarget(tankTarget);
 			Main.graphics.GraphicsDevice.Clear(Color.Transparent);
 
 			spriteBatch.End();
 			spriteBatch.Begin();
 
-			spriteBatch.DrawSlot(new Rectangle(0, 0, (int)dimensions.Width, (int)dimensions.Height), Color.White, Main.inventoryBackTexture);
+			spriteBatch.DrawSlot(new Rectangle(0, 0, (int)Dimensions.Width, (int)Dimensions.Height), Color.White, Main.inventoryBackTexture);
 
 			spriteBatch.End();
 			spriteBatch.Begin();
@@ -71,7 +64,7 @@ namespace ContainerLibrary
 			spriteBatch.End();
 			spriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.LinearClamp, null, RasterizerState.CullNone, ContainerLibrary.barShader, Main.UIScaleMatrix);
 
-			if (tankTarget != null) spriteBatch.Draw(tankTarget, dimensions.ToRectangle(), Color.White);
+			if (tankTarget != null) spriteBatch.Draw(tankTarget, Dimensions.ToRectangle(), Color.White);
 
 			spriteBatch.End();
 			spriteBatch.Begin();
