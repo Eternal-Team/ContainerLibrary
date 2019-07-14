@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
 
 namespace ContainerLibrary
 {
-	public static partial class Utility
+	public static class ItemUtility
 	{
 		public static Item SplitStack(this Item item, int amount)
 		{

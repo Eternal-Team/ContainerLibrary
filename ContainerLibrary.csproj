@@ -1,58 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="C:\Users\Itorius\Documents\My Games\Terraria\ModLoader\references\tModLoader.targets" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9FE1AF9C-346A-4106-8E05-CD9E271E2BEE}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ContainerLibrary</RootNamespace>
     <AssemblyName>ContainerLibrary</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
+    <TargetFramework>net45</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>7.3</LangVersion>
-  </PropertyGroup>
+  <Target Name="BuildMod" AfterTargets="Build">
+    <Exec Command="&quot;$(tMLBuildServerPath)&quot; -build $(ProjectDir) -eac $(TargetPath) -define $(DefineConstants) -unsafe $(AllowUnsafeBlocks)" />
+  </Target>
   <ItemGroup>
-    <Compile Include="CLPlayer.cs" />
-    <Compile Include="ContainerLibrary.cs" />
-    <Compile Include="Fluid\FluidHandler.cs" />
-    <Compile Include="Hooking.cs" />
-    <Compile Include="Item\ItemHandler.cs" />
-    <Compile Include="Item\UIContainerSlot.cs" />
-    <Compile Include="Item\ItemUtility.cs" />
-    <Compile Include="Fluid\FluidUtility.cs" />
-    <Compile Include="Fluid\UITank.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Remove=".gitignore" />
+    <None Remove="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="build.txt" />
-    <Content Include="description.txt" />
+    <ProjectReference Include="..\BaseLibrary\BaseLibrary.csproj" />
+    <ProjectReference Include="..\FluidLibrary\FluidLibrary.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BaseLibrary\BaseLibrary.csproj">
-      <Project>{0387FE69-7E77-4DC7-9867-EC3994E946D2}</Project>
-      <Name>BaseLibrary</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FluidLibrary\FluidLibrary.csproj">
-      <Project>{240c41cc-7825-4323-a76c-4efc23ad6600}</Project>
-      <Name>FluidLibrary</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files (x86)\Steam\steamapps\common\Terraria\TerrariaServer.exe" -build "$(ProjectDir)\" -eac "$(TargetPath)"</PostBuildEvent>
-  </PropertyGroup>
 </Project>

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ModLoader.IO;
 
@@ -21,6 +20,8 @@ namespace ContainerLibrary
 	public interface IItemHandlerUI
 	{
 		ItemHandler Handler { get; }
+
+		string GetTexture(Item item);
 	}
 
 	public class ItemHandler
@@ -163,7 +164,7 @@ namespace ContainerLibrary
 					if (stack.IsAir || !stack.active) return;
 				}
 			}
-			
+
 			for (int i = 0; i < Slots; i++)
 			{
 				stack = InsertItem(i, stack);

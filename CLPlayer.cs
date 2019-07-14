@@ -22,7 +22,7 @@ namespace ContainerLibrary
 
 			if (!ValidShiftClickSlots.Contains(context)) return false;
 
-			if (!BaseLibrary.BaseLibrary.PanelGUI.UI.Elements.Any(panel => ((IItemHandlerUI)panel).Handler.HasSpace(item1))) return false;
+			if (!BaseLibrary.BaseLibrary.PanelGUI.UI.Elements.Any(panel => panel is IItemHandlerUI ui && ui.Handler.HasSpace(item1))) return false;
 
 			foreach (UIElement panel in BaseLibrary.BaseLibrary.PanelGUI.UI.Elements)
 			{

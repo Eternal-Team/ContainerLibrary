@@ -2,7 +2,7 @@
 
 namespace ContainerLibrary
 {
-	public static partial class Utility
+	public static class FluidUtility
 	{
 		public static void Grow(this ModFluid item, int quantity) => SetCount(ref item, item.volume + quantity);
 

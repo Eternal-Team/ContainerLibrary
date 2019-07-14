@@ -1,10 +1,14 @@
-﻿using Mono.Cecil.Cil;
+﻿using BaseLibrary;
+using IL.Terraria.UI;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.ModLoader;
 using Recipe = IL.Terraria.Recipe;
+using UIElement = Terraria.UI.UIElement;
 
 namespace ContainerLibrary
 {
@@ -19,6 +23,8 @@ namespace ContainerLibrary
 			Recipe.FindRecipes += Recipe_FindRecipes;
 			Recipe.Create += Recipe_Create;
 			IL.Terraria.Player.AdjTiles += Player_AdjTiles;
+
+			if (ModLoader.GetMod("BaseLibrary") != null) ItemSlot.OverrideHover += ItemSlot_OverrideHover;
 		}
 
 		private static void Player_AdjTiles(ILContext il)
@@ -160,6 +166,39 @@ namespace ContainerLibrary
 
 				cursor.Emit(OpCodes.Stloc, 6);
 			}
+		}
+
+		private static void ItemSlot_OverrideHover(ILContext il)
+		{
+			ILCursor cursor = new ILCursor(il);
+			ILLabel label = cursor.DefineLabel();
+			ILLabel caseStart = cursor.DefineLabel();
+
+			ILLabel[] targets = null;
+			if (cursor.TryGotoNext(i => i.MatchSwitch(out targets))) targets[0] = caseStart;
+
+			if (cursor.TryGotoNext(i => i.MatchLdsfld(typeof(Main).GetField("npcShop", Utility.defaultFlags))))
+			{
+				cursor.MarkLabel(caseStart);
+
+				cursor.Emit(OpCodes.Ldloc, 0);
+				cursor.EmitDelegate<Func<Item, bool>>(item =>
+				{
+					UIElement uiElement = BaseLibrary.BaseLibrary.PanelGUI.UI.Elements.FirstOrDefault(element => (element as IItemHandlerUI)?.Handler.HasSpace(item) ?? false);
+					string texture = (uiElement as IItemHandlerUI)?.GetTexture(item);
+
+					if (!string.IsNullOrWhiteSpace(texture))
+					{
+						BaseLibrary.Hooking.SetCursor(texture);
+						return true;
+					}
+
+					return false;
+				});
+				cursor.Emit(OpCodes.Brtrue, label);
+			}
+
+			if (cursor.TryGotoNext(i => i.MatchLdsflda(typeof(Main).GetField("keyState", Utility.defaultFlags)))) cursor.MarkLabel(label);
 		}
 	}
 }

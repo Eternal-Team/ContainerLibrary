@@ -1,7 +1,7 @@
-﻿using System;
+﻿using FluidLibrary.Content;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using FluidLibrary.Content;
 using Terraria.ModLoader.IO;
 
 namespace ContainerLibrary
@@ -75,7 +75,7 @@ namespace ContainerLibrary
 		{
 			if (size == 0) return null;
 			ModFluid copy = itemStack.Clone();
-			Utility.SetCount(ref copy, size);
+			FluidUtility.SetCount(ref copy, size);
 			return copy;
 		}
 

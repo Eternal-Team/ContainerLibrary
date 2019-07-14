@@ -2,7 +2,7 @@
 using BaseLibrary.UI.Elements;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Starbound.Input;
+using Microsoft.Xna.Framework.Input;
 using System;
 using Terraria;
 using Terraria.GameContent.Achievements;
@@ -46,6 +46,8 @@ namespace ContainerLibrary
 
 		public override void ScrollWheel(UIScrollWheelEvent evt)
 		{
+			if (!Main.keyState.IsKeyDown(Keys.LeftAlt)) return;
+
 			if (evt.ScrollWheelValue > 0)
 			{
 				if (Main.mouseItem.type == Item.type && Main.mouseItem.stack < Main.mouseItem.maxStack)
@@ -76,6 +78,30 @@ namespace ContainerLibrary
 			}
 		}
 
+		public Item PutItemInInventory(int type, int stack = 1)
+		{
+			for (int i = 0; i < 58; i++)
+			{
+				Item item = Main.LocalPlayer.inventory[i];
+				if (item.stack > 0 && item.type == type && item.stack < item.maxStack)
+				{
+					int count = Math.Min(stack, item.maxStack - item.stack);
+					item.stack += count;
+					stack -= count;
+					if (stack <= 0) return new Item();
+				}
+			}
+
+			Item item2 = new Item();
+			item2.SetDefaults(type);
+			int c = Math.Min(stack, item2.maxStack);
+			item2.stack = c;
+			stack -= c;
+			Item item3 = Main.LocalPlayer.GetItem(Main.LocalPlayer.whoAmI, item2);
+			item3.stack += stack;
+			return item3;
+		}
+
 		public override void Click(UIMouseEvent evt)
 		{
 			if (ClickOverride()) return;
@@ -86,7 +112,8 @@ namespace ContainerLibrary
 
 				if (ItemSlot.ShiftInUse)
 				{
-					Utility.LootAll(Handler, (item, index) => index == slot);
+					Item = PutItemInInventory(Item.type, Item.stack);
+					//Utility.LootAll(Handler, (item, index) => index == slot);
 					OnInteract?.Invoke();
 					return;
 				}
