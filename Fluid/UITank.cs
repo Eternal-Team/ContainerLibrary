@@ -4,6 +4,7 @@ using FluidLibrary.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace ContainerLibrary
@@ -33,48 +34,21 @@ namespace ContainerLibrary
 
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
-			Main.instance.GraphicsDevice.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
+			spriteBatch.Draw(Main.magicPixel, Dimensions, Utility.ColorPanel);
+			spriteBatch.DrawOutline(Dimensions.Position(), Dimensions.Position() + Dimensions.Size(), Utility.ColorOutline);
 
-			var s1 = new DepthStencilState
-			{
-				StencilEnable = true,
-				StencilFunction = CompareFunction.Always,
-				StencilPass = StencilOperation.Replace,
-				ReferenceStencil = 1,
-				DepthBufferEnable = false
-			};
-
-			var s2 = new DepthStencilState
-			{
-				StencilEnable = true,
-				StencilFunction = CompareFunction.GreaterEqual,
-				StencilPass = StencilOperation.Keep,
-				ReferenceStencil = 1,
-				DepthBufferEnable = false
-			};
-
-			spriteBatch.End();
-			spriteBatch.Begin(SpriteSortMode.Immediate, null, null, s1, null, null);
-			spriteBatch.DrawSlot(Dimensions, Color.White, Main.inventoryBackTexture);
-			spriteBatch.End();
-
-			Fluid = new Water {volume = 255};
 			if (Fluid != null)
 			{
-				spriteBatch.Begin(SpriteSortMode.Immediate, null, null, s2, null, null);
-				spriteBatch.Draw(ModContent.GetTexture(Fluid.Texture), new Rectangle((int)Dimensions.X, (int)Dimensions.Y, (int)Dimensions.Width, (int)(Dimensions.Height * (Fluid.volume / (float)Handler.GetSlotLimit(0)))));
-				spriteBatch.End();
+				float progress = Fluid.volume / (float)Handler.GetSlotLimit(0);
+				spriteBatch.Draw(ModContent.GetTexture(Fluid.Texture), new Rectangle((int)Dimensions.X + 2, (int)(Dimensions.Y + 2 + (Dimensions.Height - 4) * (1f - progress)), (int)Dimensions.Width - 4, (int)((Dimensions.Height - 4) * progress)));
 			}
-
-			//Main.instance.GraphicsDevice.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24;
-			spriteBatch.Begin();
 
 			if (IsMouseHovering)
 			{
 				Main.LocalPlayer.showItemIcon = false;
 				Main.ItemIconCacheUpdate(0);
 
-				Utility.DrawMouseText(Fluid != null ? $"{Fluid.DisplayName}\n{Fluid.VolumeBuckets:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B" : $"Empty\n{0:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B");
+				Utility.DrawMouseText(Fluid != null ? $"{Fluid.DisplayName.GetTranslation(Language.ActiveCulture)}\n{Fluid.VolumeBuckets:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B" : $"Empty\n{0:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B");
 			}
 		}
 	}

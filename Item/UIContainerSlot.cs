@@ -77,31 +77,7 @@ namespace ContainerLibrary
 				}
 			}
 		}
-
-		public Item PutItemInInventory(int type, int stack = 1)
-		{
-			for (int i = 0; i < 58; i++)
-			{
-				Item item = Main.LocalPlayer.inventory[i];
-				if (item.stack > 0 && item.type == type && item.stack < item.maxStack)
-				{
-					int count = Math.Min(stack, item.maxStack - item.stack);
-					item.stack += count;
-					stack -= count;
-					if (stack <= 0) return new Item();
-				}
-			}
-
-			Item item2 = new Item();
-			item2.SetDefaults(type);
-			int c = Math.Min(stack, item2.maxStack);
-			item2.stack = c;
-			stack -= c;
-			Item item3 = Main.LocalPlayer.GetItem(Main.LocalPlayer.whoAmI, item2);
-			item3.stack += stack;
-			return item3;
-		}
-
+		
 		public override void Click(UIMouseEvent evt)
 		{
 			if (ClickOverride()) return;
@@ -112,9 +88,12 @@ namespace ContainerLibrary
 
 				if (ItemSlot.ShiftInUse)
 				{
-					Item = PutItemInInventory(Item.type, Item.stack);
-					//Utility.LootAll(Handler, (item, index) => index == slot);
+					Item = Utility.PutItemInInventory(Item);
+
 					OnInteract?.Invoke();
+
+					base.Click(evt);
+					
 					return;
 				}
 
@@ -157,19 +136,19 @@ namespace ContainerLibrary
 
 				if (player.itemAnimation > 0) return;
 
-				bool specialClick = false;
-				if (ItemLoader.CanRightClick(Item) && Main.mouseRightRelease)
-				{
-					ItemLoader.RightClick(Item, player);
-					specialClick = true;
-				}
+				//bool specialClick = false;
+				//if (ItemLoader.CanRightClick(Item) && Main.mouseRightRelease)
+				//{
+				//	ItemLoader.RightClick(Item, player);
+				//	specialClick = true;
+				//}
 
-				if (specialClick && Main.mouseRightRelease)
-				{
-					OnInteract?.Invoke();
-					Handler.OnContentsChanged?.Invoke(slot);
-					return;
-				}
+				//if (specialClick && Main.mouseRightRelease)
+				//{
+				//	OnInteract?.Invoke();
+				//	Handler.OnContentsChanged?.Invoke(slot);
+				//	return;
+				//}
 
 				if (Main.stackSplit <= 1 && Main.mouseRight)
 				{
