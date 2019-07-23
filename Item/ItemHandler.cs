@@ -221,35 +221,4 @@ namespace ContainerLibrary
 			if (slot < 0 || slot >= Items.Count) throw new Exception($"Slot {slot} not in valid range - [0,{Items.Count - 1})");
 		}
 	}
-
-	public class ItemHandlerSerializer : TagSerializer<ItemHandler, TagCompound>
-	{
-		public override TagCompound Serialize(ItemHandler value)
-		{
-			List<TagCompound> items = value.Items.Select((item, slot) => new TagCompound
-			{
-				["Slot"] = slot,
-				["Item"] = ItemIO.Save(item)
-			}).ToList();
-			return new TagCompound
-			{
-				["Items"] = items,
-				["Count"] = value.Items.Count
-			};
-		}
-
-		public override ItemHandler Deserialize(TagCompound tag)
-		{
-			ItemHandler handler = new ItemHandler(tag.GetInt("Count"));
-			foreach (TagCompound compound in tag.GetList<TagCompound>("Items"))
-			{
-				Item item = ItemIO.Load(compound.GetCompound("Item"));
-				int slot = compound.GetInt("Slot");
-
-				if (slot >= 0 && slot < handler.Items.Count) handler.Items[slot] = item;
-			}
-
-			return handler;
-		}
-	}
 }

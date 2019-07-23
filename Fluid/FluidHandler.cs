@@ -188,31 +188,4 @@ namespace ContainerLibrary
 			if (slot < 0 || slot >= tanks.Length) throw new Exception($"Slot {slot} not in valid range - [0,{tanks.Length - 1})");
 		}
 	}
-
-	public class FluidHandlerSerializer : TagSerializer<FluidHandler, TagCompound>
-	{
-		public override TagCompound Serialize(FluidHandler value) => new TagCompound
-		{
-			["Fluids"] = value.tanks.Select((fluid, slot) => new TagCompound
-			{
-				["Slot"] = slot,
-				["Fluid"] = fluid
-			}).ToList(),
-			["Count"] = value.tanks.Length
-		};
-
-		public override FluidHandler Deserialize(TagCompound tag)
-		{
-			FluidHandler handler = new FluidHandler(tag.GetInt("Count"));
-			foreach (TagCompound compound in tag.GetList<TagCompound>("Fluids"))
-			{
-				ModFluid fluid = compound.Get<ModFluid>("Fluid");
-				int slot = compound.GetInt("Slot");
-
-				if (slot >= 0 && slot < handler.tanks.Length) handler.tanks[slot] = fluid;
-			}
-
-			return handler;
-		}
-	}
 }
