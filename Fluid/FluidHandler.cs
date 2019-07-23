@@ -1,6 +1,5 @@
 ﻿using FluidLibrary.Content;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria.ModLoader.IO;
 
@@ -27,7 +26,7 @@ namespace ContainerLibrary
 		public FluidHandler(int size)
 		{
 			tanks = new ModFluid[size];
-			for (int i = 0; i < size; i++) tanks[i]=null;
+			for (int i = 0; i < size; i++) tanks[i] = null;
 		}
 
 		public FluidHandler(ModFluid[] tanks)

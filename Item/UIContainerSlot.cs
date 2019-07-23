@@ -76,8 +76,10 @@ namespace ContainerLibrary
 					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
 				}
 			}
+
+			Handler.OnContentsChanged?.Invoke(slot);
 		}
-		
+
 		public override void Click(UIMouseEvent evt)
 		{
 			if (ClickOverride()) return;
@@ -93,7 +95,7 @@ namespace ContainerLibrary
 					OnInteract?.Invoke();
 
 					base.Click(evt);
-					
+
 					return;
 				}
 
