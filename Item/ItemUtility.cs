@@ -3,86 +3,58 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Terraria.ModLoader.IO;
 using Terraria.UI;
 
 namespace ContainerLibrary
 {
 	public static class ItemUtility
 	{
-		public static Item SplitStack(this Item item, int amount)
+		public static void SetCount(this ItemHandler handler, int slot, int size)
 		{
-			int i = Math.Min(amount, item.stack);
-			Item itemstack = item.Clone();
-			itemstack.SetCount(i);
-			item.Shrink(i);
-			return itemstack;
-		}
-
-		public static void SetCount(this Item item, int size)
-		{
+			ref Item item = ref handler.GetItemInSlotByRef(slot);
 			item.stack = size;
 			if (item.stack <= 0) item.TurnToAir();
+			handler.OnContentsChanged?.Invoke(slot);
 		}
 
-		public static void Grow(this Item item, int quantity) => item.SetCount(item.stack + quantity);
-
-		public static void Shrink(this Item item, int quantity) => item.Grow(-quantity);
-
-		public static bool AreItemStackTagsEqual(Item stackA, Item stackB)
+		public static bool Grow(this ItemHandler handler, int slot, int quantity)
 		{
-			if (stackA.IsAir && stackB.IsAir) return true;
-			if (!stackA.IsAir && !stackB.IsAir)
-			{
-				TagCompound tagA = stackA.modItem.Save();
-				TagCompound tagB = stackB.modItem.Save();
+			ref Item item = ref handler.GetItemInSlotByRef(slot);
+			int limit = handler.GetItemLimit(slot, item);
+			if (item.IsAir || quantity <= 0 || item.stack + quantity > limit) return false;
 
-				if (tagA == null && tagB != null) return false;
-				return tagA == null || tagA.Equals(tagB);
-			}
+			item.stack += quantity;
+			if (item.stack <= 0) item.TurnToAir();
+			handler.OnContentsChanged?.Invoke(slot);
 
-			return false;
+			return true;
 		}
 
-		public static bool AreItemStacksEqual(Item stackA, Item stackB)
+		public static bool Shrink(this ItemHandler handler, int slot, int quantity)
 		{
-			if (stackA.IsAir && stackB.IsAir) return true;
+			ref Item item = ref handler.GetItemInSlotByRef(slot);
 
-			return !stackA.IsAir && !stackB.IsAir && stackA.IsItemStackEqual(stackB);
+			if (item.IsAir || quantity <= 0 || item.stack - quantity < 0) return false;
+
+			item.stack -= quantity;
+			if (item.stack <= 0) item.TurnToAir();
+			handler.OnContentsChanged?.Invoke(slot);
+
+			return true;
 		}
-
-		private static bool IsItemStackEqual(this Item item, Item other)
-		{
-			if (item.stack != other.stack) return false;
-
-			if (item != other) return false;
-
-			TagCompound tagA = item.modItem.Save();
-			TagCompound tagB = other.modItem.Save();
-
-			if (tagA == default(TagCompound) && tagB != default(TagCompound)) return false;
-
-			return tagA == default(TagCompound) || tagA.Equals(tagB);
-		}
-
-		public static bool IsItemEqual(this Item item, Item other) => !other.IsAir && item == other;
-
-		public static bool HasTagCompound(this Item item) => item.modItem?.Save() != null;
-
-		public static TagCompound GetTagCompound(this Item item) => item.modItem?.Save();
 
 		public static void MoveCoins(List<Item> from, ItemHandler handler)
 		{
-			List<Item> containerInv = handler.Items;
+			Item[] containerInv = handler.Items;
 			int[] coins = new int[4];
 
 			List<int> coinSlotsPlayer = new List<int>();
 			List<int> coinSlotsContainer = new List<int>();
 
 			bool anyCoins = false;
-			int[] coinValueArr = new int[containerInv.Count];
+			int[] coinValueArr = new int[containerInv.Length];
 
-			for (int i = 0; i < containerInv.Count; i++)
+			for (int i = 0; i < containerInv.Length; i++)
 			{
 				coinValueArr[i] = -1;
 				if (containerInv[i].stack < 1 || containerInv[i].type < 1)
@@ -165,7 +137,7 @@ namespace ContainerLibrary
 				}
 			}
 
-			for (int l = 0; l < containerInv.Count; l++)
+			for (int l = 0; l < containerInv.Length; l++)
 			{
 				if (coinValueArr[l] >= 0 && containerInv[l].type == 0)
 				{
@@ -185,7 +157,7 @@ namespace ContainerLibrary
 				}
 			}
 
-			for (int m = 0; m < containerInv.Count; m++)
+			for (int m = 0; m < containerInv.Length; m++)
 			{
 				if (coinValueArr[m] >= 0 && containerInv[m].type == 0)
 				{
@@ -254,7 +226,7 @@ namespace ContainerLibrary
 		{
 			Player player = Main.LocalPlayer;
 			Item[] inventory = player.inventory;
-			List<Item> item = handler.Items;
+			Item[] item = handler.Items;
 
 			HashSet<int> restackableItems = new HashSet<int>();
 			List<int> canRestackIndex = new List<int>();
@@ -274,7 +246,7 @@ namespace ContainerLibrary
 			}
 
 			bool restocked = false;
-			for (int j = 0; j < item.Count; j++)
+			for (int j = 0; j < handler.Slots; j++)
 			{
 				if (item[j].stack >= 1 && item[j].prefix == 0 && restackableItems.Contains(item[j].netID))
 				{
@@ -351,10 +323,10 @@ namespace ContainerLibrary
 		{
 			if (Main.LocalPlayer.IsStackingItems()) return;
 
-			List<Item> Items = handler.Items;
+			Item[] Items = handler.Items;
 
 			bool stacked = false;
-			for (int i = 0; i < Items.Count; i++)
+			for (int i = 0; i < handler.Slots; i++)
 			{
 				if (Items[i].type > 0 && Items[i].stack > 0 && !Items[i].favorited && (selector?.Invoke(Items[i]) ?? true))
 				{
@@ -373,10 +345,10 @@ namespace ContainerLibrary
 		public static void QuickRestack(ItemHandler handler)
 		{
 			if (Main.LocalPlayer.IsStackingItems()) return;
-			List<Item> Items = handler.Items;
+			Item[] Items = handler.Items;
 
 			bool stacked = false;
-			for (int i = 0; i < Items.Count; i++)
+			for (int i = 0; i < handler.Slots; i++)
 			{
 				if (Items[i].type > 0 && Items[i].stack > 0)
 				{
@@ -391,7 +363,7 @@ namespace ContainerLibrary
 			if (stacked) Main.PlaySound(7);
 		}
 
-		private static bool IsPlayerInChest(int i) => Main.player.Any(x => x.chest == i);
+		private static bool IsPlayerInChest(int i) => Main.player.Any(player => player.chest == i);
 
 		public static Item TakeItemFromNearbyChest(Item item, Vector2 position)
 		{
@@ -449,9 +421,9 @@ namespace ContainerLibrary
 		{
 			Player player = Main.LocalPlayer;
 
-			List<Item> Items = handler.Items;
+			Item[] Items = handler.Items;
 
-			for (int i = 0; i < Items.Count; i++)
+			for (int i = 0; i < handler.Slots; i++)
 			{
 				Item Item = Items[i];
 				if (Item.type > 0 && (selector?.Invoke(Item, i) ?? true))
@@ -470,7 +442,7 @@ namespace ContainerLibrary
 		public static void DepositAll(ItemHandler handler, Func<Item, bool> selector = null)
 		{
 			Player player = Main.LocalPlayer;
-			List<Item> Items = handler.Items;
+			Item[] Items = handler.Items;
 
 			MoveCoins(player.inventory.Take(player.inventory.Length - 1).ToList(), handler);
 
@@ -480,7 +452,7 @@ namespace ContainerLibrary
 				{
 					if (player.inventory[pIndex].maxStack > 1)
 					{
-						for (int bIndex = 0; bIndex < Items.Count; bIndex++)
+						for (int bIndex = 0; bIndex < handler.Slots; bIndex++)
 						{
 							if (Items[bIndex].stack < Items[bIndex].maxStack && player.inventory[pIndex].IsTheSameAs(Items[bIndex]))
 							{
@@ -511,7 +483,7 @@ namespace ContainerLibrary
 
 					if (player.inventory[pIndex].stack > 0)
 					{
-						for (int bIndex = 0; bIndex < Items.Count; bIndex++)
+						for (int bIndex = 0; bIndex < handler.Slots; bIndex++)
 						{
 							if (Items[bIndex].stack == 0)
 							{
@@ -529,8 +501,8 @@ namespace ContainerLibrary
 
 		public static void DropItems(this ItemHandler handler, Rectangle hitbox)
 		{
-			List<Item> list = handler.Items;
-			for (var i = 0; i < list.Count; i++)
+			Item[] list = handler.Items;
+			for (var i = 0; i < handler.Slots; i++)
 			{
 				Item item = list[i];
 				if (!item.IsAir)
@@ -558,7 +530,7 @@ namespace ContainerLibrary
 		public static void InsertItem(this ItemHandler Handler, ref Item item)
 		{
 			Item temp = item;
-			int index = Handler.Items.FindIndex(other => other.type == temp.type && other.stack < other.maxStack);
+			int index = Array.FindIndex(Handler.Items, other => other.type == temp.type && other.stack < other.maxStack);
 			if (index != -1)
 			{
 				item = Handler.InsertItem(index, item);

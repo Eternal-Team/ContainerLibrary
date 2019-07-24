@@ -12,8 +12,8 @@ namespace ContainerLibrary
 
 	public class FluidHandler
 	{
-		//public List<ModFluid> tanks;
-		public ModFluid[] tanks;
+		public ModFluid[] Fluids;
+		public int Slots => Fluids.Length;
 
 		public Action<int> OnContentsChanged = slot => { };
 		public Func<int, int> GetSlotLimit = slot => -1;
@@ -25,16 +25,16 @@ namespace ContainerLibrary
 
 		public FluidHandler(int size)
 		{
-			tanks = new ModFluid[size];
-			for (int i = 0; i < size; i++) tanks[i] = null;
+			Fluids = new ModFluid[size];
+			for (int i = 0; i < size; i++) Fluids[i] = null;
 		}
 
-		public FluidHandler(ModFluid[] tanks)
+		public FluidHandler(ModFluid[] fluids)
 		{
-			this.tanks = tanks;
+			Fluids = fluids;
 		}
 
-		public FluidHandler Clone() => new FluidHandler(tanks.Select(x => x?.Clone()).ToArray())
+		public FluidHandler Clone() => new FluidHandler(Fluids.Select(x => x?.Clone()).ToArray())
 		{
 			IsFluidValid = (Func<FluidHandler, int, ModFluid, bool>)IsFluidValid.Clone(),
 			GetSlotLimit = (Func<int, int>)GetSlotLimit.Clone(),
@@ -43,101 +43,88 @@ namespace ContainerLibrary
 
 		public void SetSize(int size)
 		{
-			tanks = new ModFluid[size];
-			for (int i = 0; i < size; i++) tanks[i] = null;
+			Fluids = new ModFluid[size];
+			for (int i = 0; i < size; i++) Fluids[i] = null;
 		}
 
 		public void SetFluidInSlot(int slot, ModFluid stack)
 		{
 			ValidateSlotIndex(slot);
-			tanks[slot] = stack;
+			Fluids[slot] = stack;
 			OnContentsChanged(slot);
 		}
-
-		public int GetSlots() => tanks.Length;
 
 		public ModFluid GetFluidInSlot(int slot)
 		{
 			ValidateSlotIndex(slot);
-			return tanks[slot];
+			return Fluids[slot];
 		}
 
 		public ref ModFluid GetFluidInSlotByRef(int slot)
 		{
 			ValidateSlotIndex(slot);
-			return ref tanks[slot];
+			return ref Fluids[slot];
 		}
 
-		public static bool CanFluidsStack(ModFluid a, ModFluid b)
-		{
-			return a.Name == b.Name;
-
-			//if (a.IsAir || a.type != b.type || a.HasTagCompound() != b.HasTagCompound()) return false;
-
-			//return !a.HasTagCompound() || a.GetTagCompound().Equals(b.GetTagCompound());
-		}
-
-		public static ModFluid CopyFluidWithSize(ModFluid itemStack, int size)
+		public static ModFluid CopyFluidWithSize(ModFluid fluid, int size)
 		{
 			if (size == 0) return null;
-			ModFluid copy = itemStack.Clone();
-			FluidUtility.SetCount(ref copy, size);
+			ModFluid copy = fluid.Clone();
+			copy.volume = fluid.volume;
 			return copy;
 		}
 
-		public ModFluid InsertFluid(int slot, ModFluid stack, bool simulate = false)
+		public ModFluid InsertFluid(int slot, ModFluid fluid, bool simulate = false)
 		{
-			if (stack == null) return null;
+			if (fluid == null) return null;
 
 			ValidateSlotIndex(slot);
 
-			if (!IsFluidValid(this, slot, stack)) return stack;
+			if (!IsFluidValid(this, slot, fluid)) return fluid;
 
-			ModFluid existing = tanks[slot];
+			ModFluid existing = Fluids[slot];
 
-			int limit = GetStackLimit(slot, stack);
+			int limit = GetVolumeLimit(slot);
 
 			if (existing != null)
 			{
-				if (!CanFluidsStack(stack, existing))
-					return stack;
+				if (!fluid.Equals(existing)) return fluid;
 
 				limit -= existing.volume;
 			}
 
-			if (limit <= 0)
-				return stack;
+			if (limit <= 0) return fluid;
 
-			bool reachedLimit = stack.volume > limit;
+			bool reachedLimit = fluid.volume > limit;
 
 			if (!simulate)
 			{
-				if (existing == null) tanks[slot] = reachedLimit ? CopyFluidWithSize(stack, limit) : stack;
-				else existing.Grow(reachedLimit ? limit : stack.volume);
+				if (existing == null) Fluids[slot] = reachedLimit ? CopyFluidWithSize(fluid, limit) : fluid;
+				else this.Grow(slot, reachedLimit ? limit : fluid.volume);
 
 				OnContentsChanged(slot);
 			}
 
-			return reachedLimit ? CopyFluidWithSize(stack, stack.volume - limit) : null;
+			return reachedLimit ? CopyFluidWithSize(fluid, fluid.volume - limit) : null;
 		}
 
-		public ModFluid ExtractFluid(int slot, int amount, bool simulate = false)
+		public ModFluid ExtractFluid(int slot, int volume, bool simulate = false)
 		{
-			if (amount == 0) return null;
+			if (volume == 0) return null;
 
 			ValidateSlotIndex(slot);
 
-			ModFluid existing = tanks[slot];
+			ModFluid existing = Fluids[slot];
 
 			if (existing == null) return null;
 
-			int toExtract = Math.Min(amount, GetStackLimit(slot, existing));
+			int toExtract = Math.Min(volume, GetVolumeLimit(slot));
 
 			if (existing.volume <= toExtract)
 			{
 				if (!simulate)
 				{
-					tanks[slot] = null;
+					Fluids[slot] = null;
 					OnContentsChanged(slot);
 				}
 
@@ -146,37 +133,34 @@ namespace ContainerLibrary
 
 			if (!simulate)
 			{
-				tanks[slot] = CopyFluidWithSize(existing, existing.volume - toExtract);
+				Fluids[slot] = CopyFluidWithSize(existing, existing.volume - toExtract);
 				OnContentsChanged(slot);
 			}
 
 			return CopyFluidWithSize(existing, toExtract);
 		}
 
-		protected int GetStackLimit(int slot, ModFluid stack)
-		{
-			return GetSlotLimit(slot) /*== -1 ? stack.maxVolume : Math.Min(GetSlotLimit(slot), stack.maxVolume)*/;
-		}
+		protected int GetVolumeLimit(int slot) => GetSlotLimit(slot);
 
 		public TagCompound Save() => new TagCompound
 		{
-			["Fluids"] = tanks.Select((fluid, slot) => new TagCompound
+			["Fluids"] = Fluids.Select((fluid, slot) => new TagCompound
 			{
 				["Slot"] = slot,
 				["Fluid"] = fluid
 			}).ToList(),
-			["Count"] = tanks.Length
+			["Count"] = Slots
 		};
 
 		public FluidHandler Load(TagCompound tag)
 		{
-			SetSize(tag.ContainsKey("Count") ? tag.GetInt("Count") : tanks.Length);
+			SetSize(tag.ContainsKey("Count") ? tag.GetInt("Count") : Slots);
 			foreach (TagCompound compound in tag.GetList<TagCompound>("Fluids"))
 			{
 				ModFluid fluid = compound.Get<ModFluid>("Fluid");
 				int slot = compound.GetInt("Slot");
 
-				if (slot >= 0 && slot < tanks.Length) tanks[slot] = fluid;
+				if (slot >= 0 && slot < Slots) Fluids[slot] = fluid;
 			}
 
 			return this;
@@ -184,7 +168,7 @@ namespace ContainerLibrary
 
 		protected void ValidateSlotIndex(int slot)
 		{
-			if (slot < 0 || slot >= tanks.Length) throw new Exception($"Slot {slot} not in valid range - [0,{tanks.Length - 1})");
+			if (slot < 0 || slot >= Slots) throw new Exception($"Slot {slot} not in valid range - [0,{Slots - 1})");
 		}
 	}
 }

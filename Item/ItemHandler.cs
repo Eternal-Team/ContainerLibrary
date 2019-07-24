@@ -26,8 +26,8 @@ namespace ContainerLibrary
 
 	public class ItemHandler
 	{
-		public List<Item> Items;
-		public int Slots => Items.Count;
+		public Item[] Items;
+		public int Slots => Items.Length;
 
 		public Action<int> OnContentsChanged = slot => { };
 		public Func<int, int> GetSlotLimit = slot => -1;
@@ -35,16 +35,16 @@ namespace ContainerLibrary
 
 		public ItemHandler(int size = 1)
 		{
-			Items = new List<Item>(size);
-			for (int i = 0; i < size; i++) Items.Add(new Item());
+			Items = new Item[size];
+			for (int i = 0; i < size; i++) Items[i] = new Item();
 		}
 
-		public ItemHandler(List<Item> items)
+		public ItemHandler(Item[] items)
 		{
 			Items = items;
 		}
 
-		public ItemHandler Clone() => new ItemHandler(Items.Select(x => x.Clone()).ToList())
+		public ItemHandler Clone() => new ItemHandler(Items.Select(x => x.Clone()).ToArray())
 		{
 			IsItemValid = (Func<int, Item, bool>)IsItemValid.Clone(),
 			GetSlotLimit = (Func<int, int>)GetSlotLimit.Clone(),
@@ -53,8 +53,8 @@ namespace ContainerLibrary
 
 		public void SetSize(int size)
 		{
-			Items = new List<Item>(size);
-			for (int i = 0; i < size; i++) Items.Add(new Item());
+			Items = new Item[size];
+			for (int i = 0; i < size; i++) Items[i] = new Item();
 		}
 
 		public void SetItemInSlot(int slot, Item stack)
@@ -70,18 +70,26 @@ namespace ContainerLibrary
 			return Items[slot];
 		}
 
+		public ref Item GetItemInSlotByRef(int slot)
+		{
+			ValidateSlotIndex(slot);
+			return ref Items[slot];
+		}
+
 		public static bool CanItemsStack(Item a, Item b)
 		{
-			if (a.IsAir || a.type != b.type || a.HasTagCompound() != b.HasTagCompound()) return false;
+			//if (a.IsAir || a.type != b.type || a.HasTagCompound() != b.HasTagCompound()) return false;
 
-			return !a.HasTagCompound() || a.GetTagCompound().Equals(b.GetTagCompound());
+			//return !a.HasTagCompound() || a.GetTagCompound().Equals(b.GetTagCompound());
+
+			return a.type == b.type;
 		}
 
 		public static Item CopyItemWithSize(Item itemStack, int size)
 		{
 			if (size == 0) return new Item();
 			Item copy = itemStack.Clone();
-			copy.SetCount(size);
+			copy.stack = itemStack.stack;
 			return copy;
 		}
 
@@ -99,21 +107,19 @@ namespace ContainerLibrary
 
 			if (!existing.IsAir)
 			{
-				if (!CanItemsStack(stack, existing))
-					return stack;
+				if (!CanItemsStack(stack, existing)) return stack;
 
 				limit -= existing.stack;
 			}
 
-			if (limit <= 0)
-				return stack;
+			if (limit <= 0) return stack;
 
 			bool reachedLimit = stack.stack > limit;
 
 			if (!simulate)
 			{
 				if (existing.IsAir) Items[slot] = reachedLimit ? CopyItemWithSize(stack, limit) : stack.Clone();
-				else existing.Grow(reachedLimit ? limit : stack.stack);
+				else this.Grow(slot, reachedLimit ? limit : stack.stack);
 
 				OnContentsChanged?.Invoke(slot);
 			}
@@ -172,7 +178,12 @@ namespace ContainerLibrary
 			}
 		}
 
-		protected int GetItemLimit(int slot, Item stack) => GetSlotLimit(slot) == -1 ? stack.maxStack : GetSlotLimit(slot);
+		public int GetItemLimit(int slot, Item stack)
+		{
+			int limit = GetSlotLimit(slot);
+			if (limit >= 0) return limit;
+			return !stack.IsAir ? stack.maxStack : 0;
+		}
 
 		public TagCompound Save()
 		{
@@ -184,19 +195,19 @@ namespace ContainerLibrary
 			return new TagCompound
 			{
 				["Items"] = items,
-				["Count"] = Items.Count
+				["Count"] = Slots
 			};
 		}
 
 		public ItemHandler Load(TagCompound tag)
 		{
-			SetSize(tag.ContainsKey("Count") ? tag.GetInt("Count") : Items.Count);
+			SetSize(tag.ContainsKey("Count") ? tag.GetInt("Count") : Slots);
 			foreach (TagCompound compound in tag.GetList<TagCompound>("Items"))
 			{
 				Item item = ItemIO.Load(compound.GetCompound("Item"));
 				int slot = compound.GetInt("Slot");
 
-				if (slot >= 0 && slot < Items.Count) Items[slot] = item;
+				if (slot >= 0 && slot < Slots) Items[slot] = item;
 			}
 
 			return this;
@@ -204,8 +215,8 @@ namespace ContainerLibrary
 
 		public void Serialize(BinaryWriter writer)
 		{
-			writer.Write(Items.Count);
-			for (int i = 0; i < Items.Count; i++) writer.WriteItem(Items[i], true, true);
+			writer.Write(Slots);
+			for (int i = 0; i < Slots; i++) writer.WriteItem(Items[i], true, true);
 		}
 
 		public void Deserialize(BinaryReader reader)
@@ -213,12 +224,12 @@ namespace ContainerLibrary
 			int size = reader.ReadInt32();
 			SetSize(size);
 
-			for (int i = 0; i < Items.Count; i++) Items[i] = reader.ReadItem(true, true);
+			for (int i = 0; i < Slots; i++) Items[i] = reader.ReadItem(true, true);
 		}
 
 		protected void ValidateSlotIndex(int slot)
 		{
-			if (slot < 0 || slot >= Items.Count) throw new Exception($"Slot {slot} not in valid range - [0,{Items.Count - 1})");
+			if (slot < 0 || slot >= Slots) throw new Exception($"Slot {slot} not in valid range - [0, {Slots - 1})");
 		}
 	}
 }

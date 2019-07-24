@@ -108,7 +108,7 @@ namespace ContainerLibrary
 				{
 					foreach (ICraftingStorage storage in Main.LocalPlayer.inventory.Where(item => item.modItem is ICraftingStorage).Select(item => (ICraftingStorage)item.modItem))
 					{
-						for (int index = 0; index < storage.CraftingHandler.Items.Count; index++)
+						for (int index = 0; index < storage.CraftingHandler.Slots; index++)
 						{
 							if (amount <= 0) return amount;
 							Item item = storage.CraftingHandler.Items[index];

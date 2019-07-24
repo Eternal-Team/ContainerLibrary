@@ -4,8 +4,10 @@ using FluidLibrary.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.UI;
 
 namespace ContainerLibrary
 {
@@ -15,6 +17,7 @@ namespace ContainerLibrary
 		public FluidHandler Handler => fluidHandler.Handler;
 
 		public int slot;
+		private int MaxVolume => Handler.GetSlotLimit(slot);
 
 		public ModFluid Fluid
 		{
@@ -32,6 +35,69 @@ namespace ContainerLibrary
 
 		public override int CompareTo(object obj) => slot.CompareTo(((UITank)obj).slot);
 
+		public override void Click(UIMouseEvent evt)
+		{
+			Item item = Main.LocalPlayer.GetHeldItem();
+			if (item.type == ItemID.EmptyBucket)
+			{
+				if (Fluid == null || Fluid.volume < 255) return;
+
+				switch (Fluid.Name)
+				{
+					case "Water":
+						Main.LocalPlayer.PutItemInInventory(ItemID.WaterBucket);
+						break;
+					case "Lava":
+						Main.LocalPlayer.PutItemInInventory(ItemID.LavaBucket);
+						break;
+					case "Honey":
+						Main.LocalPlayer.PutItemInInventory(ItemID.HoneyBucket);
+						break;
+				}
+
+				item.stack--;
+				if (item.stack <= 0) item.TurnToAir();
+
+				Handler.Shrink(slot, 255);
+			}
+			else if (item.type == ItemID.WaterBucket)
+			{
+				if (Fluid != null && (!Fluid.Equals(FluidLoader.GetFluid<Water>()) || Fluid.volume > MaxVolume - 255)) return;
+
+				if (Fluid == null) Fluid = FluidLoader.GetFluid<Water>().Clone();
+
+				item.stack--;
+				if (item.stack <= 0) item.TurnToAir();
+				Main.LocalPlayer.PutItemInInventory(ItemID.EmptyBucket);
+
+				Handler.Grow(slot, 255);
+			}
+			else if (item.type == ItemID.LavaBucket)
+			{
+				if (Fluid != null && (!Fluid.Equals(FluidLoader.GetFluid<Lava>()) || Fluid.volume > MaxVolume - 255)) return;
+
+				if (Fluid == null) Fluid = new Lava();
+
+				item.stack--;
+				if (item.stack <= 0) item.TurnToAir();
+				Main.LocalPlayer.PutItemInInventory(ItemID.EmptyBucket);
+
+				Handler.Grow(slot, 255);
+			}
+			else if (item.type == ItemID.HoneyBucket)
+			{
+				if (Fluid != null && (!Fluid.Equals(FluidLoader.GetFluid<Honey>()) || Fluid.volume > MaxVolume - 255)) return;
+
+				if (Fluid == null) Fluid = new Honey();
+
+				item.stack--;
+				if (item.stack <= 0) item.TurnToAir();
+				Main.LocalPlayer.PutItemInInventory(ItemID.EmptyBucket);
+
+				Handler.Grow(slot, 255);
+			}
+		}
+		// todo: better drawing
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
 			spriteBatch.Draw(Main.magicPixel, Dimensions, Utility.ColorPanel);
@@ -48,7 +114,7 @@ namespace ContainerLibrary
 				Main.LocalPlayer.showItemIcon = false;
 				Main.ItemIconCacheUpdate(0);
 
-				Utility.DrawMouseText(Fluid != null ? $"{Fluid.DisplayName.GetTranslation(Language.ActiveCulture)}\n{Fluid.VolumeBuckets:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B" : $"Empty\n{0:N2}/{Handler.GetSlotLimit(slot) / 255f:N2} B");
+				Utility.DrawMouseText(Fluid != null ? $"{Fluid.DisplayName.GetTranslation(Language.ActiveCulture)}\n{Fluid.VolumeBuckets:N2}/{MaxVolume / 255f:N2} B" : $"Empty\n{0:N2}/{MaxVolume / 255f:N2} B");
 			}
 		}
 	}

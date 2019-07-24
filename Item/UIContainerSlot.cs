@@ -53,20 +53,19 @@ namespace ContainerLibrary
 				if (Main.mouseItem.type == Item.type && Main.mouseItem.stack < Main.mouseItem.maxStack)
 				{
 					Main.mouseItem.stack++;
-					if (--Item.stack <= 0) Item.TurnToAir();
+					Handler.Shrink(slot, 1);
 				}
 				else if (Main.mouseItem.IsAir)
 				{
 					Main.mouseItem = Item.Clone();
 					Main.mouseItem.stack = 1;
-					if (--Item.stack <= 0) Item.TurnToAir();
+					Handler.Shrink(slot, 1);
 				}
 			}
 			else if (evt.ScrollWheelValue < 0)
 			{
-				if (Item.type == Main.mouseItem.type && Item.stack < Item.maxStack)
+				if (Item.type == Main.mouseItem.type && Handler.Grow(slot, 1))
 				{
-					Item.stack++;
 					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
 				}
 				else if (Item.IsAir)
@@ -76,8 +75,6 @@ namespace ContainerLibrary
 					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
 				}
 			}
-
-			Handler.OnContentsChanged?.Invoke(slot);
 		}
 
 		public override void Click(UIMouseEvent evt)
@@ -120,7 +117,6 @@ namespace ContainerLibrary
 				}
 
 				OnInteract?.Invoke();
-				Handler.OnContentsChanged?.Invoke(slot);
 			}
 
 			base.Click(evt);
@@ -138,20 +134,6 @@ namespace ContainerLibrary
 
 				if (player.itemAnimation > 0) return;
 
-				//bool specialClick = false;
-				//if (ItemLoader.CanRightClick(Item) && Main.mouseRightRelease)
-				//{
-				//	ItemLoader.RightClick(Item, player);
-				//	specialClick = true;
-				//}
-
-				//if (specialClick && Main.mouseRightRelease)
-				//{
-				//	OnInteract?.Invoke();
-				//	Handler.OnContentsChanged?.Invoke(slot);
-				//	return;
-				//}
-
 				if (Main.stackSplit <= 1 && Main.mouseRight)
 				{
 					if ((Main.mouseItem.IsTheSameAs(Item) || Main.mouseItem.type == 0) && (Main.mouseItem.stack < Main.mouseItem.maxStack || Main.mouseItem.type == 0))
@@ -165,8 +147,7 @@ namespace ContainerLibrary
 						}
 
 						Main.mouseItem.stack++;
-						Item.stack--;
-						if (Item.stack <= 0) Item = new Item();
+						Handler.Shrink(slot, 1);
 
 						Recipe.FindRecipes();
 
@@ -179,11 +160,17 @@ namespace ContainerLibrary
 				}
 
 				OnInteract?.Invoke();
-				Handler.OnContentsChanged?.Invoke(slot);
 			}
 		}
 
 		public override int CompareTo(object obj) => Comparer?.Invoke(this, (UIContainerSlot)obj) ?? slot.CompareTo(((UIContainerSlot)obj).slot);
+
+		public override void Update(GameTime gameTime)
+		{
+			base.Update(gameTime);
+
+			if (IsMouseHovering && Main.keyState.IsKeyDown(Keys.LeftAlt)) BaseLibrary.Hooking.BlockScrolling = true;
+		}
 
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
