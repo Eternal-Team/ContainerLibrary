@@ -97,7 +97,7 @@ namespace ContainerLibrary
 				Handler.Grow(slot, 255);
 			}
 		}
-		// todo: better drawing
+
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
 			spriteBatch.Draw(Main.magicPixel, Dimensions, Utility.ColorPanel);

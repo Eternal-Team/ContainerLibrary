@@ -213,13 +213,13 @@ namespace ContainerLibrary
 			return this;
 		}
 
-		public void Serialize(BinaryWriter writer)
+		public void Write(BinaryWriter writer)
 		{
 			writer.Write(Slots);
 			for (int i = 0; i < Slots; i++) writer.WriteItem(Items[i], true, true);
 		}
 
-		public void Deserialize(BinaryReader reader)
+		public void Read(BinaryReader reader)
 		{
 			int size = reader.ReadInt32();
 			SetSize(size);

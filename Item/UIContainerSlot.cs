@@ -176,7 +176,7 @@ namespace ContainerLibrary
 		{
 			spriteBatch.DrawSlot(Dimensions, Color.White, !Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture);
 
-			float scale = Math.Min(Dimensions.Width / backgroundTexture.Width, Dimensions.Height / backgroundTexture.Height);
+			float scale = Math.Min(InnerDimensions.Width / backgroundTexture.Width, InnerDimensions.Height / backgroundTexture.Height);
 
 			if (!Item.IsAir)
 			{
@@ -192,14 +192,13 @@ namespace ContainerLibrary
 				float availableWidth = InnerDimensions.Width;
 				if (width > availableWidth || height > availableWidth)
 				{
-					if (width > height) drawScale = availableWidth / width;
+					if (width > height)drawScale = availableWidth / width;
 					else drawScale = availableWidth / height;
 				}
 
 				drawScale *= scale;
-				Vector2 vector = backgroundTexture.Size() * scale;
-				Vector2 position2 = Dimensions.Position() + vector / 2f - rect.Size() * drawScale / 2f;
-				Vector2 origin = rect.Size() * (pulseScale / 2f - 0.5f);
+				Vector2 position2 = Dimensions.Position() + Dimensions.Size() * 0.5f;
+				Vector2 origin = rect.Size() * 0.5f;
 
 				if (ItemLoader.PreDrawInInventory(Item, spriteBatch, position2, rect, Item.GetAlpha(newColor), Item.GetColor(Color.White), origin, drawScale * pulseScale))
 				{
@@ -208,8 +207,13 @@ namespace ContainerLibrary
 				}
 
 				ItemLoader.PostDrawInInventory(Item, spriteBatch, position2, rect, Item.GetAlpha(newColor), Item.GetColor(Color.White), origin, drawScale * pulseScale);
-				if (ItemID.Sets.TrapSigned[Item.type]) spriteBatch.Draw(Main.wireTexture, Dimensions.Position() + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
-				if (Item.stack > 1) ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, !ShortStackSize || Item.stack < 1000 ? Item.stack.ToString() : Item.stack.ToSI("N1"), Dimensions.Position() + new Vector2(10f, 26f) * scale, Color.White, 0f, Vector2.Zero, new Vector2(scale), -1f, scale);
+				if (ItemID.Sets.TrapSigned[Item.type]) spriteBatch.Draw(Main.wireTexture, position2 + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
+				if (Item.stack > 1)
+				{
+					string text = !ShortStackSize || Item.stack < 1000 ? Item.stack.ToString() : Item.stack.ToSI("N1");
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text,
+						InnerDimensions.Position()+new Vector2(8, InnerDimensions.Height- Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(scale), -1f, scale);
+				}
 
 				if (IsMouseHovering)
 				{
