@@ -192,7 +192,7 @@ namespace ContainerLibrary
 				float availableWidth = InnerDimensions.Width;
 				if (width > availableWidth || height > availableWidth)
 				{
-					if (width > height)drawScale = availableWidth / width;
+					if (width > height) drawScale = availableWidth / width;
 					else drawScale = availableWidth / height;
 				}
 
@@ -212,7 +212,7 @@ namespace ContainerLibrary
 				{
 					string text = !ShortStackSize || Item.stack < 1000 ? Item.stack.ToString() : Item.stack.ToSI("N1");
 					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text,
-						InnerDimensions.Position()+new Vector2(8, InnerDimensions.Height- Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(scale), -1f, scale);
+						InnerDimensions.Position() + new Vector2(8, InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(scale), -1f, scale);
 				}
 
 				if (IsMouseHovering)

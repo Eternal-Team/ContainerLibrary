@@ -14,6 +14,8 @@ namespace ContainerLibrary
 {
 	public static class Hooking
 	{
+		// todo: swap ldfld with ldfld<T>
+
 		public static Func<int> AlchemyConsumeChance = () => 3;
 		public static Func<bool> AlchemyApplyChance = () => Main.LocalPlayer.alchemyTable;
 		public static Action<Player> ModifyAdjTiles = player => { };
@@ -31,7 +33,7 @@ namespace ContainerLibrary
 		{
 			ILCursor cursor = new ILCursor(il);
 
-			if (cursor.TryGotoNext(i => i.MatchLdarg(0), i => i.MatchLdarg(0), i => i.MatchLdfld(typeof(Player).GetField("adjWater"))))
+			if (cursor.TryGotoNext(i => i.MatchLdarg(0), i => i.MatchLdarg(0), i => i.MatchLdfld<Player>("adjWater")))
 			{
 				cursor.Emit(OpCodes.Ldarg, 0);
 				cursor.EmitDelegate<Action<Player>>(player => ModifyAdjTiles(player));
@@ -52,12 +54,12 @@ namespace ContainerLibrary
 				cursor.Emit(OpCodes.Brfalse, labelAlchemy);
 			}
 
-			if (cursor.TryGotoNext(i => i.MatchLdarg(0), i => i.MatchLdfld(typeof(Terraria.Recipe).GetField("alchemy")), i => i.MatchBrfalse(out _)))
+			if (cursor.TryGotoNext(i => i.MatchLdarg(0), i => i.MatchLdfld<Terraria.Recipe>("alchemy"), i => i.MatchBrfalse(out _)))
 			{
 				cursor.MarkLabel(labelAlchemy);
 
 				cursor.Emit(OpCodes.Ldarg, 0);
-				cursor.Emit(OpCodes.Ldfld, typeof(Terraria.Recipe).GetField("alchemy"));
+				cursor.Emit<Terraria.Recipe>(OpCodes.Ldfld, "alchemy");
 				cursor.Emit(OpCodes.Ldloc, 2);
 
 				cursor.EmitDelegate<Func<bool, int, int>>((alchemy, amount) =>
@@ -82,7 +84,7 @@ namespace ContainerLibrary
 
 			if (cursor.TryGotoNext(i => i.MatchLdloc(2), i => i.MatchLdcI4(0), i => i.MatchBle(out _))) cursor.MarkLabel(labelCheckAmount);
 
-			if (cursor.TryGotoNext(i => i.MatchLdfld(typeof(Player).GetField("chest")), i => i.MatchLdcI4(-1), i => i.MatchBeq(out _)))
+			if (cursor.TryGotoNext(i => i.MatchLdfld<Player>("chest"), i => i.MatchLdcI4(-1), i => i.MatchBeq(out _)))
 			{
 				cursor.Index += 2;
 				cursor.Remove();

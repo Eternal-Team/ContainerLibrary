@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.ID;
 using Terraria.UI;
 
 namespace ContainerLibrary
@@ -222,6 +223,7 @@ namespace ContainerLibrary
 			}
 		}
 
+		// note: keep this?
 		public static void Restock(ItemHandler handler)
 		{
 			Player player = Main.LocalPlayer;
@@ -319,6 +321,7 @@ namespace ContainerLibrary
 			if (restocked) Main.PlaySound(7);
 		}
 
+		// note: keep this?
 		public static void QuickStack(ItemHandler handler, Func<Item, bool> selector = null)
 		{
 			if (Main.LocalPlayer.IsStackingItems()) return;
@@ -342,6 +345,7 @@ namespace ContainerLibrary
 			if (stacked) Main.PlaySound(7);
 		}
 
+		// note: keep this?
 		public static void QuickRestack(ItemHandler handler)
 		{
 			if (Main.LocalPlayer.IsStackingItems()) return;
@@ -417,85 +421,36 @@ namespace ContainerLibrary
 			return item;
 		}
 
-		public static void LootAll(ItemHandler handler, Func<Item, int, bool> selector)
+		/// <summary>
+		///     Deposits items from the handler to player inventory
+		/// </summary>
+		public static void LootAll(ItemHandler handler, Player player)
 		{
-			Player player = Main.LocalPlayer;
-
-			Item[] Items = handler.Items;
-
 			for (int i = 0; i < handler.Slots; i++)
 			{
-				Item Item = Items[i];
-				if (Item.type > 0 && (selector?.Invoke(Item, i) ?? true))
+				ref Item item = ref handler.GetItemInSlotByRef(i);
+				if (!item.IsAir)
 				{
-					Item.position = player.Center;
-					Item = player.GetItem(Main.myPlayer, Item);
+					item.position = player.Center;
+					item = player.GetItem(Main.myPlayer, item);
+					handler.OnContentsChanged?.Invoke(i);
 				}
-
-				Items[i] = Item;
-				handler.OnContentsChanged?.Invoke(i);
 			}
 		}
 
-		public static void LootAll(ItemHandler handler, Func<Item, bool> selector = null) => LootAll(handler, (item, index) => selector?.Invoke(item) ?? true);
-
-		public static void DepositAll(ItemHandler handler, Func<Item, bool> selector = null)
+		/// <summary>
+		///     Deposits items from the player inventory to the handler
+		/// </summary>
+		public static void DepositAll(ItemHandler handler, Player player)
 		{
-			Player player = Main.LocalPlayer;
-			Item[] Items = handler.Items;
-
 			MoveCoins(player.inventory.Take(player.inventory.Length - 1).ToList(), handler);
 
-			for (int pIndex = 49; pIndex >= 10; pIndex--)
+			for (int i = 49; i >= 10; i--)
 			{
-				if (player.inventory[pIndex].stack > 0 && player.inventory[pIndex].type > 0 && !player.inventory[pIndex].favorited && (selector?.Invoke(player.inventory[pIndex]) ?? true))
-				{
-					if (player.inventory[pIndex].maxStack > 1)
-					{
-						for (int bIndex = 0; bIndex < handler.Slots; bIndex++)
-						{
-							if (Items[bIndex].stack < Items[bIndex].maxStack && player.inventory[pIndex].IsTheSameAs(Items[bIndex]))
-							{
-								int stack = player.inventory[pIndex].stack;
-								if (player.inventory[pIndex].stack + Items[bIndex].stack > Items[bIndex].maxStack) stack = Items[bIndex].maxStack - Items[bIndex].stack;
-
-								player.inventory[pIndex].stack -= stack;
-								Items[bIndex].stack += stack;
-								Main.PlaySound(7);
-
-								if (player.inventory[pIndex].stack <= 0)
-								{
-									player.inventory[pIndex].SetDefaults();
-									handler.OnContentsChanged(bIndex);
-									break;
-								}
-
-								if (Items[bIndex].type == 0)
-								{
-									Items[bIndex] = player.inventory[pIndex].Clone();
-									player.inventory[pIndex].SetDefaults();
-								}
-
-								handler.OnContentsChanged(bIndex);
-							}
-						}
-					}
-
-					if (player.inventory[pIndex].stack > 0)
-					{
-						for (int bIndex = 0; bIndex < handler.Slots; bIndex++)
-						{
-							if (Items[bIndex].stack == 0)
-							{
-								Main.PlaySound(7);
-								Items[bIndex] = player.inventory[pIndex].Clone();
-								player.inventory[pIndex].SetDefaults();
-								handler.OnContentsChanged(bIndex);
-								break;
-							}
-						}
-					}
-				}
+				ref Item item = ref player.inventory[i];
+				if (item.IsAir || item.favorited) continue;
+				handler.InsertItem(ref item);
+				Main.PlaySound(SoundID.Grab);
 			}
 		}
 
@@ -525,23 +480,6 @@ namespace ContainerLibrary
 
 			int index = 0;
 			return source.Any(element => predicate(element, index++));
-		}
-
-		public static void InsertItem(this ItemHandler Handler, ref Item item)
-		{
-			Item temp = item;
-			int index = Array.FindIndex(Handler.Items, other => other.type == temp.type && other.stack < other.maxStack);
-			if (index != -1)
-			{
-				item = Handler.InsertItem(index, item);
-				if (item.IsAir || !item.active) item.active = false;
-			}
-
-			for (int i = 0; i < Handler.Slots; i++)
-			{
-				item = Handler.InsertItem(i, item);
-				if (item.IsAir) item.active = false;
-			}
 		}
 	}
 }
