@@ -106,6 +106,7 @@ namespace ContainerLibrary
 			if (Fluid != null)
 			{
 				float progress = Fluid.volume / (float)Handler.GetSlotLimit(0);
+				// todo: should grab from FluidLoaders texture cache
 				spriteBatch.Draw(ModContent.GetTexture(Fluid.Texture), new Rectangle((int)Dimensions.X + 2, (int)(Dimensions.Y + 2 + (Dimensions.Height - 4) * (1f - progress)), (int)Dimensions.Width - 4, (int)((Dimensions.Height - 4) * progress)));
 			}
 

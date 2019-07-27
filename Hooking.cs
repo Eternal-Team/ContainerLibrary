@@ -14,8 +14,6 @@ namespace ContainerLibrary
 {
 	public static class Hooking
 	{
-		// todo: swap ldfld with ldfld<T>
-
 		public static Func<int> AlchemyConsumeChance = () => 3;
 		public static Func<bool> AlchemyApplyChance = () => Main.LocalPlayer.alchemyTable;
 		public static Action<Player> ModifyAdjTiles = player => { };
@@ -136,7 +134,7 @@ namespace ContainerLibrary
 			ILCursor cursor = new ILCursor(il);
 			ILLabel label = cursor.DefineLabel();
 
-			if (cursor.TryGotoNext(i => i.MatchLdfld(typeof(Player).GetField("chest")), i => i.MatchLdcI4(-1), i => i.MatchBeq(out _)))
+			if (cursor.TryGotoNext(i => i.MatchLdfld<Player>("chest"), i => i.MatchLdcI4(-1), i => i.MatchBeq(out _)))
 			{
 				cursor.Index += 2;
 				cursor.Remove();

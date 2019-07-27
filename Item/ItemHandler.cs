@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Terraria;
@@ -89,7 +90,7 @@ namespace ContainerLibrary
 		{
 			if (size == 0) return new Item();
 			Item copy = itemStack.Clone();
-			copy.stack = itemStack.stack;
+			copy.stack = size;
 			return copy;
 		}
 

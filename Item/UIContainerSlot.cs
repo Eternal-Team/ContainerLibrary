@@ -19,16 +19,12 @@ namespace ContainerLibrary
 
 		public bool ShortStackSize = false;
 
+		public Item PreviewItem;
+
 		private readonly Func<ItemHandler> FuncHandler;
 		public ItemHandler Handler => FuncHandler();
 
 		public int slot;
-
-		public event Action OnInteract;
-		public Func<bool> ClickOverride = () => false;
-		public Func<bool> RightClickOverride = () => false;
-
-		public Func<UIContainerSlot, UIContainerSlot, int> Comparer;
 
 		public Item Item
 		{
@@ -79,7 +75,6 @@ namespace ContainerLibrary
 
 		public override void Click(UIMouseEvent evt)
 		{
-			if (ClickOverride()) return;
 			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
 				Item.newAndShiny = false;
@@ -87,9 +82,7 @@ namespace ContainerLibrary
 
 				if (ItemSlot.ShiftInUse)
 				{
-					Item = Utility.PutItemInInventory(Item);
-
-					OnInteract?.Invoke();
+					ItemUtility.Loot(Handler, slot, Main.LocalPlayer);
 
 					base.Click(evt);
 
@@ -102,9 +95,12 @@ namespace ContainerLibrary
 					if (Item.IsTheSameAs(Main.mouseItem)) Main.mouseItem = Handler.InsertItem(slot, Main.mouseItem);
 					else
 					{
-						Item temp = Item;
-						Utils.Swap(ref temp, ref Main.mouseItem);
-						Item = temp;
+						if (Item.stack <= Item.maxStack)
+						{
+							Item temp = Item;
+							Utils.Swap(ref temp, ref Main.mouseItem);
+							Item = temp;
+						}
 					}
 				}
 
@@ -115,8 +111,6 @@ namespace ContainerLibrary
 					Recipe.FindRecipes();
 					Main.PlaySound(SoundID.Grab);
 				}
-
-				OnInteract?.Invoke();
 			}
 
 			base.Click(evt);
@@ -124,11 +118,8 @@ namespace ContainerLibrary
 
 		public override void RightClickContinuous(UIMouseEvent evt)
 		{
-			if (RightClickOverride()) return;
 			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
-				OnInteract?.Invoke();
-
 				Player player = Main.LocalPlayer;
 				Item.newAndShiny = false;
 
@@ -158,12 +149,10 @@ namespace ContainerLibrary
 						Main.stackSplit = Main.stackSplit == 0 ? 15 : Main.stackDelay;
 					}
 				}
-
-				OnInteract?.Invoke();
 			}
 		}
 
-		public override int CompareTo(object obj) => Comparer?.Invoke(this, (UIContainerSlot)obj) ?? slot.CompareTo(((UIContainerSlot)obj).slot);
+		public override int CompareTo(object obj) => slot.CompareTo(((UIContainerSlot)obj).slot);
 
 		public override void Update(GameTime gameTime)
 		{
@@ -172,58 +161,63 @@ namespace ContainerLibrary
 			if (IsMouseHovering && Main.keyState.IsKeyDown(Keys.LeftAlt)) BaseLibrary.Hooking.BlockScrolling = true;
 		}
 
+		private void DrawItem(SpriteBatch spriteBatch, Item item, float scale)
+		{
+			Texture2D itemTexture = Main.itemTexture[item.type];
+			Rectangle rect = Main.itemAnimations[item.type] != null ? Main.itemAnimations[item.type].GetFrame(itemTexture) : itemTexture.Frame();
+			Color newColor = Color.White;
+			float pulseScale = 1f;
+			ItemSlot.GetItemLight(ref newColor, ref pulseScale, item);
+			int height = rect.Height;
+			int width = rect.Width;
+			float drawScale = 1f;
+
+			float availableWidth = InnerDimensions.Width;
+			if (width > availableWidth || height > availableWidth)
+			{
+				if (width > height) drawScale = availableWidth / width;
+				else drawScale = availableWidth / height;
+			}
+
+			drawScale *= scale;
+			Vector2 position = Dimensions.Position() + Dimensions.Size() * 0.5f;
+			Vector2 origin = rect.Size() * 0.5f;
+
+			if (ItemLoader.PreDrawInInventory(item, spriteBatch, position, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale))
+			{
+				spriteBatch.Draw(itemTexture, position, rect, item.GetAlpha(newColor), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
+				if (item.color != Color.Transparent) spriteBatch.Draw(itemTexture, position, rect, item.GetColor(Color.White), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
+			}
+
+			ItemLoader.PostDrawInInventory(item, spriteBatch, position, rect, item.GetAlpha(newColor), item.GetColor(Color.White), origin, drawScale * pulseScale);
+			if (ItemID.Sets.TrapSigned[item.type]) spriteBatch.Draw(Main.wireTexture, position + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
+			if (item.stack > 1)
+			{
+				string text = !ShortStackSize || item.stack < 1000 ? item.stack.ToString() : item.stack.ToSI("N1");
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text, InnerDimensions.Position() + new Vector2(8, InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(scale), -1f, scale);
+			}
+
+			if (IsMouseHovering)
+			{
+				Main.LocalPlayer.showItemIcon = false;
+				Main.ItemIconCacheUpdate(0);
+				Main.HoverItem = item.Clone();
+				Main.hoverItemName = Main.HoverItem.Name;
+
+				if (ItemSlot.ShiftInUse) BaseLibrary.Hooking.SetCursor("Terraria/UI/Cursor_7");
+			}
+		}
+
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
 			spriteBatch.DrawSlot(Dimensions, Color.White, !Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture);
 
 			float scale = Math.Min(InnerDimensions.Width / backgroundTexture.Width, InnerDimensions.Height / backgroundTexture.Height);
 
-			if (!Item.IsAir)
+			if (!Item.IsAir) DrawItem(spriteBatch, Item, scale);
+			else if (PreviewItem != null && !PreviewItem.IsAir)
 			{
-				Texture2D itemTexture = Main.itemTexture[Item.type];
-				Rectangle rect = Main.itemAnimations[Item.type] != null ? Main.itemAnimations[Item.type].GetFrame(itemTexture) : itemTexture.Frame();
-				Color newColor = Color.White;
-				float pulseScale = 1f;
-				ItemSlot.GetItemLight(ref newColor, ref pulseScale, Item);
-				int height = rect.Height;
-				int width = rect.Width;
-				float drawScale = 1f;
-
-				float availableWidth = InnerDimensions.Width;
-				if (width > availableWidth || height > availableWidth)
-				{
-					if (width > height) drawScale = availableWidth / width;
-					else drawScale = availableWidth / height;
-				}
-
-				drawScale *= scale;
-				Vector2 position2 = Dimensions.Position() + Dimensions.Size() * 0.5f;
-				Vector2 origin = rect.Size() * 0.5f;
-
-				if (ItemLoader.PreDrawInInventory(Item, spriteBatch, position2, rect, Item.GetAlpha(newColor), Item.GetColor(Color.White), origin, drawScale * pulseScale))
-				{
-					spriteBatch.Draw(itemTexture, position2, rect, Item.GetAlpha(newColor), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
-					if (Item.color != Color.Transparent) spriteBatch.Draw(itemTexture, position2, rect, Item.GetColor(Color.White), 0f, origin, drawScale * pulseScale, SpriteEffects.None, 0f);
-				}
-
-				ItemLoader.PostDrawInInventory(Item, spriteBatch, position2, rect, Item.GetAlpha(newColor), Item.GetColor(Color.White), origin, drawScale * pulseScale);
-				if (ItemID.Sets.TrapSigned[Item.type]) spriteBatch.Draw(Main.wireTexture, position2 + new Vector2(40f, 40f) * scale, new Rectangle(4, 58, 8, 8), Color.White, 0f, new Vector2(4f), 1f, SpriteEffects.None, 0f);
-				if (Item.stack > 1)
-				{
-					string text = !ShortStackSize || Item.stack < 1000 ? Item.stack.ToString() : Item.stack.ToSI("N1");
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Main.fontItemStack, text,
-						InnerDimensions.Position() + new Vector2(8, InnerDimensions.Height - Main.fontMouseText.MeasureString(text).Y * scale), Color.White, 0f, Vector2.Zero, new Vector2(scale), -1f, scale);
-				}
-
-				if (IsMouseHovering)
-				{
-					Main.LocalPlayer.showItemIcon = false;
-					Main.ItemIconCacheUpdate(0);
-					Main.HoverItem = Item.Clone();
-					Main.hoverItemName = Main.HoverItem.Name;
-
-					if (ItemSlot.ShiftInUse) BaseLibrary.Hooking.SetCursor("Terraria/UI/Cursor_7");
-				}
+				spriteBatch.DrawWithEffect(BaseLibrary.BaseLibrary.DesaturateShader, () => { DrawItem(spriteBatch, PreviewItem, scale); });
 			}
 		}
 	}
