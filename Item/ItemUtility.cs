@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.ID;
-using Terraria.UI;
 
 namespace ContainerLibrary
 {
@@ -418,9 +417,9 @@ namespace ContainerLibrary
 
 		//	return item;
 		//}
-		
+
 		//private static bool IsPlayerInChest(int i) => Main.player.Any(player => player.chest == i);
-		
+
 		/// <summary>
 		///     Deposits items from the handler to player inventory
 		/// </summary>
