@@ -215,10 +215,7 @@ namespace ContainerLibrary
 			float scale = Math.Min(InnerDimensions.Width / backgroundTexture.Width, InnerDimensions.Height / backgroundTexture.Height);
 
 			if (!Item.IsAir) DrawItem(spriteBatch, Item, scale);
-			else if (PreviewItem != null && !PreviewItem.IsAir)
-			{
-				spriteBatch.DrawWithEffect(BaseLibrary.BaseLibrary.DesaturateShader, () => { DrawItem(spriteBatch, PreviewItem, scale); });
-			}
+			else if (PreviewItem != null && !PreviewItem.IsAir) spriteBatch.DrawWithEffect(BaseLibrary.BaseLibrary.DesaturateShader, () => DrawItem(spriteBatch, PreviewItem, scale));
 		}
 	}
 }
