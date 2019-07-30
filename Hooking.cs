@@ -184,7 +184,7 @@ namespace ContainerLibrary
 				cursor.Emit(OpCodes.Ldloc, 0);
 				cursor.EmitDelegate<Func<Item, bool>>(item =>
 				{
-					UIElement uiElement = BaseLibrary.BaseLibrary.PanelGUI.UI.Elements.FirstOrDefault(element => (element as IItemHandlerUI)?.Handler.HasSpace(item) ?? false);
+					UIElement uiElement = BaseLibrary.BaseLibrary.PanelGUI.UI.Elements.FirstOrDefault(element => (element as IItemHandlerUI)?.Handler?.HasSpace(item) ?? false);
 					string texture = (uiElement as IItemHandlerUI)?.GetTexture(item);
 
 					if (!string.IsNullOrWhiteSpace(texture))

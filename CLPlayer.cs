@@ -8,7 +8,7 @@ namespace ContainerLibrary
 {
 	public class CLPlayer : ModPlayer
 	{
-		private static List<int> ValidShiftClickSlots = new List<int> {ItemSlot.Context.InventoryItem, ItemSlot.Context.InventoryCoin, ItemSlot.Context.InventoryAmmo};
+		private static List<int> ValidShiftClickSlots = new List<int> { ItemSlot.Context.InventoryItem, ItemSlot.Context.InventoryCoin, ItemSlot.Context.InventoryAmmo };
 
 		public override bool Autoload(ref string name) => ModLoader.GetMod("BaseLibrary") != null;
 

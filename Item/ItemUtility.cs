@@ -421,7 +421,7 @@ namespace ContainerLibrary
 		//private static bool IsPlayerInChest(int i) => Main.player.Any(player => player.chest == i);
 
 		/// <summary>
-		///     Deposits items from the handler to player inventory
+		///     Deposits Items from the handler to player inventory
 		/// </summary>
 		public static void LootAll(ItemHandler handler, Player player)
 		{
@@ -470,7 +470,7 @@ namespace ContainerLibrary
 		}
 
 		/// <summary>
-		///     Deposits items from the player inventory to the handler
+		///     Deposits Items from the player inventory to the handler
 		/// </summary>
 		public static void DepositAll(ItemHandler handler, Player player)
 		{
