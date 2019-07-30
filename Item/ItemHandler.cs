@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BaseLibrary;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -216,7 +217,7 @@ namespace ContainerLibrary
 		public void Write(BinaryWriter writer)
 		{
 			writer.Write(Slots);
-			for (int i = 0; i < Slots; i++) writer.WriteItem(Items[i], true, true);
+			for (int i = 0; i < Slots; i++) writer.Send(Items[i], true, true);
 		}
 
 		public void Read(BinaryReader reader)
@@ -224,7 +225,7 @@ namespace ContainerLibrary
 			int size = reader.ReadInt32();
 			SetSize(size);
 
-			for (int i = 0; i < Slots; i++) Items[i] = reader.ReadItem(true, true);
+			for (int i = 0; i < Slots; i++) Items[i] = reader.Receive(true, true);
 		}
 
 		protected void ValidateSlotIndex(int slot)
