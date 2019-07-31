@@ -1,5 +1,7 @@
-﻿using FluidLibrary.Content;
+﻿using BaseLibrary;
+using FluidLibrary.Content;
 using System;
+using System.IO;
 using System.Linq;
 using Terraria.ModLoader.IO;
 
@@ -164,6 +166,21 @@ namespace ContainerLibrary
 			}
 
 			return this;
+		}
+
+		public void Write(BinaryWriter writer)
+		{
+			writer.Write(Slots);
+
+			for (int i = 0; i < Slots; i++)writer.Write(Fluids[i]);
+		}
+
+		public void Read(BinaryReader reader)
+		{
+			int size = reader.ReadInt32();
+			SetSize(size);
+
+			for (int i = 0; i < Slots; i++) Fluids[i] = reader.ReadFluid();
 		}
 
 		protected void ValidateSlotIndex(int slot)
