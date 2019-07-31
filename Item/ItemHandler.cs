@@ -200,7 +200,7 @@ namespace ContainerLibrary
 			};
 		}
 
-		public ItemHandler Load(TagCompound tag)
+		public void Load(TagCompound tag)
 		{
 			SetSize(tag.ContainsKey("Count") ? tag.GetInt("Count") : Slots);
 			foreach (TagCompound compound in tag.GetList<TagCompound>("Items"))
@@ -210,8 +210,6 @@ namespace ContainerLibrary
 
 				if (slot >= 0 && slot < Slots) Items[slot] = item;
 			}
-
-			return this;
 		}
 
 		public void Write(BinaryWriter writer)

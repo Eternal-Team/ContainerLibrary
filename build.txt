@@ -1,5 +1,5 @@
 ﻿author = Itorius & team
-version = 1.0.2
+version = 1.0.3
 displayName = Container Library
 homepage = http://forums.terraria.org/index.php?threads/itorius-mods.42289/
 hideCode = false
