@@ -19,7 +19,7 @@ namespace ContainerLibrary
 			if (item.favorited || item.IsAir || !ValidShiftClickSlots.Contains(context)) return false;
 
 			bool block = false;
-			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.UI.Elements)
+			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
 			{
 				if (element is IItemHandlerUI ui && ui.Handler.HasSpace(item))
 				{

@@ -1,5 +1,4 @@
-﻿using BaseLibrary;
-using FluidLibrary.Content;
+﻿using FluidLibrary.Content;
 using System;
 using System.IO;
 using System.Linq;
@@ -172,7 +171,7 @@ namespace ContainerLibrary
 		{
 			writer.Write(Slots);
 
-			for (int i = 0; i < Slots; i++)writer.Write(Fluids[i]);
+			for (int i = 0; i < Slots; i++) writer.Write(Fluids[i]);
 		}
 
 		public void Read(BinaryReader reader)
