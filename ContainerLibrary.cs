@@ -6,13 +6,13 @@ namespace ContainerLibrary
 {
 	public class ContainerLibrary : Mod
 	{
-		public static Effect barShader;
+		internal static Effect BarShader;
 
 		public override void Load()
 		{
 			Hooking.Load();
 
-			if (!Main.dedServ) barShader = GetEffect("Effects/BarShader");
+			if (!Main.dedServ) BarShader = GetEffect("Effects/BarShader");
 		}
 	}
 }
