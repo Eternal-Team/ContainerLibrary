@@ -9,6 +9,8 @@ namespace ContainerLibrary
 {
 	public static class ItemUtility
 	{
+		public static bool BlockGetItem;
+
 		public static void SetCount(this ItemHandler handler, int slot, int size)
 		{
 			ref Item item = ref handler.GetItemInSlotByRef(slot);
@@ -42,185 +44,6 @@ namespace ContainerLibrary
 
 			return true;
 		}
-
-		//public static void MoveCoins(List<Item> from, ItemHandler handler)
-		//{
-		//	Item[] containerInv = handler.Items;
-		//	int[] coins = new int[4];
-
-		//	List<int> coinSlotsPlayer = new List<int>();
-		//	List<int> coinSlotsContainer = new List<int>();
-
-		//	bool anyCoins = false;
-		//	int[] coinValueArr = new int[containerInv.Length];
-
-		//	for (int i = 0; i < containerInv.Length; i++)
-		//	{
-		//		coinValueArr[i] = -1;
-		//		if (containerInv[i].stack < 1 || containerInv[i].type < 1)
-		//		{
-		//			coinSlotsContainer.Add(i);
-		//			containerInv[i] = new Item();
-		//		}
-
-		//		if (containerInv[i] != null && containerInv[i].stack > 0)
-		//		{
-		//			int num = 0;
-		//			switch (containerInv[i].type)
-		//			{
-		//				case 71:
-		//					num = 1;
-		//					break;
-		//				case 72:
-		//					num = 2;
-		//					break;
-		//				case 73:
-		//					num = 3;
-		//					break;
-		//				case 74:
-		//					num = 4;
-		//					break;
-		//			}
-
-		//			coinValueArr[i] = num - 1;
-		//			if (num > 0)
-		//			{
-		//				coins[num - 1] += containerInv[i].stack;
-		//				coinSlotsContainer.Add(i);
-		//				containerInv[i] = new Item();
-		//				anyCoins = true;
-		//			}
-		//		}
-
-		//		handler.OnContentsChanged(i);
-		//	}
-
-		//	if (!anyCoins) return;
-		//	Main.PlaySound(7);
-
-		//	for (int slot = 0; slot < from.Count; slot++)
-		//	{
-		//		if (from[slot] != null && from[slot].stack > 0)
-		//		{
-		//			int index = 0;
-		//			switch (from[slot].type)
-		//			{
-		//				case 71:
-		//					index = 1;
-		//					break;
-		//				case 72:
-		//					index = 2;
-		//					break;
-		//				case 73:
-		//					index = 3;
-		//					break;
-		//				case 74:
-		//					index = 4;
-		//					break;
-		//			}
-
-		//			if (index > 0)
-		//			{
-		//				coins[index - 1] += from[slot].stack;
-		//				coinSlotsPlayer.Add(slot);
-		//				from[slot] = new Item();
-		//			}
-		//		}
-		//	}
-
-		//	for (int k = 0; k < 3; k++)
-		//	{
-		//		while (coins[k] >= 100)
-		//		{
-		//			coins[k] -= 100;
-		//			coins[k + 1]++;
-		//		}
-		//	}
-
-		//	for (int l = 0; l < containerInv.Length; l++)
-		//	{
-		//		if (coinValueArr[l] >= 0 && containerInv[l].type == 0)
-		//		{
-		//			int num3 = l;
-		//			int num4 = coinValueArr[l];
-		//			if (coins[num4] > 0)
-		//			{
-		//				containerInv[num3].SetDefaults(71 + num4);
-		//				containerInv[num3].stack = coins[num4];
-		//				if (containerInv[num3].stack > containerInv[num3].maxStack) containerInv[num3].stack = containerInv[num3].maxStack;
-		//				coins[num4] -= containerInv[num3].stack;
-		//				coinValueArr[l] = -1;
-		//				handler.OnContentsChanged(l);
-		//			}
-
-		//			coinSlotsContainer.Remove(num3);
-		//		}
-		//	}
-
-		//	for (int m = 0; m < containerInv.Length; m++)
-		//	{
-		//		if (coinValueArr[m] >= 0 && containerInv[m].type == 0)
-		//		{
-		//			int num5 = m;
-		//			int n = 3;
-		//			while (n >= 0)
-		//			{
-		//				if (coins[n] > 0)
-		//				{
-		//					containerInv[num5].SetDefaults(71 + n);
-		//					containerInv[num5].stack = coins[n];
-		//					if (containerInv[num5].stack > containerInv[num5].maxStack) containerInv[num5].stack = containerInv[num5].maxStack;
-		//					coins[n] -= containerInv[num5].stack;
-		//					coinValueArr[m] = -1;
-		//					handler.OnContentsChanged(num5);
-		//					break;
-		//				}
-
-		//				if (coins[n] == 0) n--;
-		//			}
-
-		//			coinSlotsContainer.Remove(num5);
-		//		}
-		//	}
-
-		//	while (coinSlotsContainer.Count > 0)
-		//	{
-		//		int num6 = coinSlotsContainer[0];
-		//		int num7 = 3;
-		//		while (num7 >= 0)
-		//		{
-		//			if (coins[num7] > 0)
-		//			{
-		//				containerInv[num6].SetDefaults(71 + num7);
-		//				containerInv[num6].stack = coins[num7];
-		//				if (containerInv[num6].stack > containerInv[num6].maxStack) containerInv[num6].stack = containerInv[num6].maxStack;
-		//				coins[num7] -= containerInv[num6].stack;
-		//				handler.OnContentsChanged(num7);
-		//				break;
-		//			}
-
-		//			if (coins[num7] == 0) num7--;
-		//		}
-
-		//		coinSlotsContainer.RemoveAt(0);
-		//	}
-
-		//	int num8 = 3;
-		//	while (num8 >= 0 && coinSlotsPlayer.Count > 0)
-		//	{
-		//		int num9 = coinSlotsPlayer[0];
-		//		if (coins[num8] > 0)
-		//		{
-		//			from[num9].SetDefaults(71 + num8);
-		//			from[num9].stack = coins[num8];
-		//			if (from[num9].stack > from[num9].maxStack) from[num9].stack = from[num9].maxStack;
-		//			coins[num8] -= from[num9].stack;
-		//		}
-
-		//		if (coins[num8] == 0) num8--;
-		//		coinSlotsPlayer.RemoveAt(0);
-		//	}
-		//}
 
 		//public static void Restock(ItemHandler handler)
 		//{
@@ -421,7 +244,7 @@ namespace ContainerLibrary
 		//private static bool IsPlayerInChest(int i) => Main.player.Any(player => player.chest == i);
 
 		/// <summary>
-		///     Deposits Items from the handler to player inventory
+		///     Deposits items from the handler to player inventory
 		/// </summary>
 		public static void LootAll(ItemHandler handler, Player player)
 		{
@@ -431,7 +254,11 @@ namespace ContainerLibrary
 				if (!item.IsAir)
 				{
 					item.position = player.Center;
-					foreach (Item item1 in item.Split()) player.GetItem(player.whoAmI, item1);
+
+					BlockGetItem = true;
+					item = Combine(item.Split().Select(split => player.GetItem(player.whoAmI, split)));
+					BlockGetItem = false;
+
 					handler.OnContentsChanged?.Invoke(i);
 				}
 			}
@@ -446,11 +273,41 @@ namespace ContainerLibrary
 			if (!item.IsAir)
 			{
 				item.position = player.Center;
-				foreach (Item item1 in item.Split()) player.GetItem(player.whoAmI, item1);
+
+				BlockGetItem = true;
+				item = Combine(item.Split().Select(split => player.GetItem(player.whoAmI, split)));
+				BlockGetItem = false;
+
 				handler.OnContentsChanged?.Invoke(slot);
 			}
 		}
 
+		/// <summary>
+		///     Combines a list of items with the same type into one item
+		/// </summary>
+		public static Item Combine(IEnumerable<Item> items)
+		{
+			List<Item> list = items.ToList();
+
+			Item ret = new Item();
+
+			foreach (Item item in list)
+			{
+				if (ret.IsAir && !item.IsAir)
+				{
+					ret.SetDefaults(item.type);
+					ret.stack = 0;
+				}
+
+				if (ret.type == item.type) ret.stack += item.stack;
+			}
+
+			return ret;
+		}
+
+		/// <summary>
+		///     Splits an item into multiple items with stack clamped to max stack
+		/// </summary>
 		public static IEnumerable<Item> Split(this Item item)
 		{
 			while (item.stack > 0)
@@ -483,6 +340,9 @@ namespace ContainerLibrary
 			}
 		}
 
+		/// <summary>
+		///     Drops items in a ItemHandler in world with a specified hitbox
+		/// </summary>
 		public static void DropItems(this ItemHandler handler, Rectangle hitbox)
 		{
 			Item[] list = handler.Items;
@@ -498,6 +358,9 @@ namespace ContainerLibrary
 			}
 		}
 
+		/// <summary>
+		///     Checks whether an ItemHandler has space for an item
+		/// </summary>
 		public static bool HasSpace(this ItemHandler handler, Item item)
 		{
 			return handler.Items.Any((item1, i) => (item1.IsAir || item1.type == item.type && item1.stack < handler.GetItemLimit(i, item1)) && handler.IsItemValid(i, item));

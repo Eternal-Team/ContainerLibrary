@@ -20,6 +20,6 @@
     <ProjectReference Include="..\FluidLibrary\FluidLibrary.csproj" />
   </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="&quot;G:\C#\TerrariaCompiler\Builds\Debug\Binaries\TerrariaCompiler.exe&quot; &quot;$(ProjectDir)\&quot;" />
+    <Exec Command="&quot;G:\C#\Terraria\TerrariaCompiler\Builds\Debug\Binaries\TerrariaCompiler.exe&quot; &quot;$(ProjectDir)\&quot;" />
   </Target>
 </Project>
