@@ -93,25 +93,11 @@ namespace ContainerLibrary
 		/// </summary>
 		public static void QuickStack(ItemHandler handler, Player player)
 		{
-			for (int i = 0; i < handler.Slots; i++)
+			for (int i = 49; i >= 10; i--)
 			{
-				ref Item item = ref handler.GetItemInSlotByRef(i);
+				ref Item inventory = ref player.inventory[i];
 
-				if (!item.IsAir && item.stack < handler.GetItemLimit(i))
-				{
-					for (int j = 49; j >= 10; j--)
-					{
-						Item inventory = player.inventory[j];
-
-						if (!inventory.IsAir && inventory.type == item.type)
-						{
-							int count = Math.Min(handler.GetItemLimit(i) - item.stack, inventory.stack);
-							item.stack += count;
-							inventory.stack -= count;
-							if (inventory.stack <= 0) inventory.TurnToAir();
-						}
-					}
-				}
+				if (!inventory.IsAir && handler.Contains(inventory.type)) handler.InsertItem(ref inventory);
 			}
 
 			Main.PlaySound(SoundID.Grab);
