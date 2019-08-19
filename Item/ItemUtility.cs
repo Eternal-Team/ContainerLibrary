@@ -11,18 +11,10 @@ namespace ContainerLibrary
 	{
 		public static bool BlockGetItem;
 
-		public static void SetCount(this ItemHandler handler, int slot, int size)
-		{
-			ref Item item = ref handler.GetItemInSlotByRef(slot);
-			item.stack = size;
-			if (item.stack <= 0) item.TurnToAir();
-			handler.OnContentsChanged?.Invoke(slot);
-		}
-
 		public static bool Grow(this ItemHandler handler, int slot, int quantity)
 		{
 			ref Item item = ref handler.GetItemInSlotByRef(slot);
-			int limit = handler.GetItemLimit(slot, item);
+			int limit = handler.GetItemLimit(slot);
 			if (item.IsAir || quantity <= 0 || item.stack + quantity > limit) return false;
 
 			item.stack += quantity;
@@ -45,203 +37,85 @@ namespace ContainerLibrary
 			return true;
 		}
 
-		//public static void Restock(ItemHandler handler)
-		//{
-		//	Player player = Main.LocalPlayer;
-		//	Item[] inventory = player.inventory;
-		//	Item[] item = handler.Items;
+		public static bool Contains(this ItemHandler handler, int type)
+		{
+			for (int i = 0; i < handler.Slots; i++)
+			{
+				Item item = handler.GetItemInSlot(i);
 
-		//	HashSet<int> restackableItems = new HashSet<int>();
-		//	List<int> canRestackIndex = new List<int>();
-		//	List<int> list2 = new List<int>();
+				if (!item.IsAir && item.type == type) return true;
+			}
 
-		//	for (int i = 57; i >= 0; i--)
-		//	{
-		//		if ((i < 50 || i >= 54) && (inventory[i].type < 71 || inventory[i].type > 74))
-		//		{
-		//			if (inventory[i].stack > 0 && inventory[i].maxStack > 1 && inventory[i].prefix == 0)
-		//			{
-		//				restackableItems.Add(inventory[i].netID);
-		//				if (inventory[i].stack < inventory[i].maxStack) canRestackIndex.Add(i);
-		//			}
-		//			else if (inventory[i].stack == 0 || inventory[i].netID == 0 || inventory[i].type == 0) list2.Add(i);
-		//		}
-		//	}
+			return false;
+		}
 
-		//	bool restocked = false;
-		//	for (int j = 0; j < handler.Slots; j++)
-		//	{
-		//		if (item[j].stack >= 1 && item[j].prefix == 0 && restackableItems.Contains(item[j].netID))
-		//		{
-		//			bool flag2 = false;
-		//			for (int k = 0; k < canRestackIndex.Count; k++)
-		//			{
-		//				int num = canRestackIndex[k];
-		//				int context = 0;
-		//				if (num >= 50)
-		//				{
-		//					context = 2;
-		//				}
+		public static long CoinsValue(this ItemHandler handler)
+		{
+			long num = 0L;
+			for (int i = 0; i < handler.Slots; i++)
+			{
+				Item item = handler.GetItemInSlot(i);
+				switch (item.type)
+				{
+					case 71:
+						num += item.stack;
+						break;
+					case 72:
+						num += item.stack * 100;
+						break;
+					case 73:
+						num += item.stack * 10000;
+						break;
+					case 74:
+						num += item.stack * 1000000;
+						break;
+				}
+			}
 
-		//				if (inventory[num].netID == item[j].netID && ItemSlot.PickItemMovementAction(inventory, context, num, item[j]) != -1)
-		//				{
-		//					int num2 = item[j].stack;
-		//					if (inventory[num].maxStack - inventory[num].stack < num2)
-		//					{
-		//						num2 = inventory[num].maxStack - inventory[num].stack;
-		//					}
+			return num;
+		}
 
-		//					inventory[num].stack += num2;
-		//					item[j].stack -= num2;
-		//					handler.OnContentsChanged(j);
-		//					restocked = true;
-		//					if (inventory[num].stack == inventory[num].maxStack)
-		//					{
-		//						canRestackIndex.RemoveAt(k);
-		//						k--;
-		//					}
+		public static int CountItems(this ItemHandler handler, Func<Item, bool> predicate)
+		{
+			int count = 0;
 
-		//					if (item[j].stack == 0)
-		//					{
-		//						item[j] = new Item();
-		//						flag2 = true;
-		//						handler.OnContentsChanged(j);
-		//						break;
-		//					}
-		//				}
-		//			}
+			for (int i = 0; i < handler.Slots; i++)
+			{
+				Item item = handler.GetItemInSlot(i);
+				if (predicate(item)) count += item.stack;
+			}
 
-		//			if (!flag2 && list2.Count > 0 && item[j].ammo != 0)
-		//			{
-		//				for (int l = 0; l < list2.Count; l++)
-		//				{
-		//					int context2 = 0;
-		//					if (list2[l] >= 50)
-		//					{
-		//						context2 = 2;
-		//					}
+			return count;
+		}
 
-		//					if (ItemSlot.PickItemMovementAction(inventory, context2, list2[l], item[j]) != -1)
-		//					{
-		//						Item temp = inventory[list2[l]];
-		//						inventory[list2[l]] = item[j];
-		//						item[j] = temp;
+		/// <summary>
+		///     Quick stacks items from player inventory to handler
+		/// </summary>
+		public static void QuickStack(ItemHandler handler, Player player)
+		{
+			for (int i = 0; i < handler.Slots; i++)
+			{
+				ref Item item = ref handler.GetItemInSlotByRef(i);
 
-		//						handler.OnContentsChanged(j);
+				if (!item.IsAir && item.stack < handler.GetItemLimit(i))
+				{
+					for (int j = 49; j >= 10; j--)
+					{
+						Item inventory = player.inventory[j];
 
-		//						canRestackIndex.Add(list2[l]);
-		//						list2.RemoveAt(l);
-		//						restocked = true;
-		//						break;
-		//					}
-		//				}
-		//			}
-		//		}
-		//	}
+						if (!inventory.IsAir && inventory.type == item.type)
+						{
+							int count = Math.Min(handler.GetItemLimit(i) - item.stack, inventory.stack);
+							item.stack += count;
+							inventory.stack -= count;
+							if (inventory.stack <= 0) inventory.TurnToAir();
+						}
+					}
+				}
+			}
 
-		//	if (restocked) Main.PlaySound(7);
-		//}
-
-		//public static void QuickStack(ItemHandler handler, Func<Item, bool> selector = null)
-		//{
-		//	if (Main.LocalPlayer.IsStackingItems()) return;
-
-		//	Item[] Items = handler.Items;
-
-		//	bool stacked = false;
-		//	for (int i = 0; i < handler.Slots; i++)
-		//	{
-		//		if (Items[i].type > 0 && Items[i].stack > 0 && !Items[i].favorited && (selector?.Invoke(Items[i]) ?? true))
-		//		{
-		//			int type = Items[i].type;
-		//			int stack = Items[i].stack;
-		//			Items[i] = Chest.PutItemInNearbyChest(Items[i], Main.LocalPlayer.Center);
-		//			if (Items[i].type != type || Items[i].stack != stack) stacked = true;
-
-		//			handler.OnContentsChanged(i);
-		//		}
-		//	}
-
-		//	if (stacked) Main.PlaySound(7);
-		//}
-
-		//public static void QuickRestack(ItemHandler handler)
-		//{
-		//	if (Main.LocalPlayer.IsStackingItems()) return;
-		//	Item[] Items = handler.Items;
-
-		//	bool stacked = false;
-		//	for (int i = 0; i < handler.Slots; i++)
-		//	{
-		//		if (Items[i].type > 0 && Items[i].stack > 0)
-		//		{
-		//			int type = Items[i].type;
-		//			int stack = Items[i].stack;
-		//			Items[i] = TakeItemFromNearbyChest(Items[i], Main.LocalPlayer.Center);
-		//			handler.OnContentsChanged(i);
-		//			if (Items[i].type != type || Items[i].stack != stack) stacked = true;
-		//		}
-		//	}
-
-		//	if (stacked) Main.PlaySound(7);
-		//}
-
-		//public static Item TakeItemFromNearbyChest(Item item, Vector2 position)
-		//{
-		//	if (Main.netMode == 1)
-		//		return item;
-		//	for (int i = 0; i < Main.chest.Length; i++)
-		//	{
-		//		//bool hasItem = false;
-		//		//bool emptySlot = false;
-		//		if (Main.chest[i] != null && !IsPlayerInChest(i) && !Chest.isLocked(Main.chest[i].x, Main.chest[i].y))
-		//		{
-		//			Vector2 value = new Vector2(Main.chest[i].x * 16 + 16, Main.chest[i].y * 16 + 16);
-		//			if ((value - position).Length() < 200f)
-		//			{
-		//				for (int j = 0; j < Main.chest[i].item.Length; j++)
-		//				{
-		//					if (Main.chest[i].item[j].type > 0 && Main.chest[i].item[j].stack > 0)
-		//					{
-		//						if (item.IsTheSameAs(Main.chest[i].item[j]))
-		//						{
-		//							//hasItem = true;
-		//							int num = item.maxStack - item.stack;
-		//							if (num > 0)
-		//							{
-		//								if (num > Main.chest[i].item[j].stack)
-		//									num = Main.chest[i].item[j].stack;
-		//								item.stack += num;
-		//								Main.chest[i].item[j].stack -= num;
-		//								if (Main.chest[i].item[j].stack <= 0)
-		//									Main.chest[i].item[j].SetDefaults();
-		//							}
-		//						}
-		//					}
-
-		//					//else emptySlot = true;
-		//				}
-
-		//				//if (hasItem && emptySlot && item.stack > 0)
-		//				//{
-		//				//	for (int k = 0; k < Main.chest[i].item.Length; k++)
-		//				//	{
-		//				//		if (Main.chest[i].item[k].type == 0 || Main.chest[i].item[k].stack == 0)
-		//				//		{
-		//				//			Main.chest[i].item[k] = item.Clone();
-		//				//			item.SetDefaults();
-		//				//			return item;
-		//				//		}
-		//				//	}
-		//				//}
-		//			}
-		//		}
-		//	}
-
-		//	return item;
-		//}
-
-		//private static bool IsPlayerInChest(int i) => Main.player.Any(player => player.chest == i);
+			Main.PlaySound(SoundID.Grab);
+		}
 
 		/// <summary>
 		///     Deposits items from the handler to player inventory
@@ -295,7 +169,7 @@ namespace ContainerLibrary
 			{
 				if (ret.IsAir && !item.IsAir)
 				{
-					ret.SetDefaults(item.type);
+					ret = item.Clone();
 					ret.stack = 0;
 				}
 
@@ -327,7 +201,7 @@ namespace ContainerLibrary
 		}
 
 		/// <summary>
-		///     Deposits Items from the player inventory to the handler
+		///     Deposits items from the player inventory to the handler
 		/// </summary>
 		public static void DepositAll(ItemHandler handler, Player player)
 		{
@@ -341,14 +215,13 @@ namespace ContainerLibrary
 		}
 
 		/// <summary>
-		///     Drops items in a ItemHandler in world with a specified hitbox
+		///     Drops items in a handler in world with a specified hitbox
 		/// </summary>
 		public static void DropItems(this ItemHandler handler, Rectangle hitbox)
 		{
-			Item[] list = handler.Items;
 			for (var i = 0; i < handler.Slots; i++)
 			{
-				Item item = list[i];
+				Item item = handler.GetItemInSlot(i);
 				if (!item.IsAir)
 				{
 					Item.NewItem(hitbox, item.type, item.stack, prefixGiven: item.prefix);
@@ -359,11 +232,19 @@ namespace ContainerLibrary
 		}
 
 		/// <summary>
-		///     Checks whether an ItemHandler has space for an item
+		///     Checks whether an handler has space for an item
 		/// </summary>
 		public static bool HasSpace(this ItemHandler handler, Item item)
 		{
-			return handler.Items.Any((item1, i) => (item1.IsAir || item1.type == item.type && item1.stack < handler.GetItemLimit(i, item1)) && handler.IsItemValid(i, item));
+			for (int i = 0; i < handler.Slots; i++)
+			{
+				Item inHandler = handler.GetItemInSlot(i);
+
+				if (inHandler.IsAir && handler.IsItemValid(i, item)) return true;
+				if (inHandler.type == item.type && inHandler.stack < handler.GetItemLimit(i)) return true;
+			}
+
+			return false;
 		}
 
 		public static bool Any<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)

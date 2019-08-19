@@ -27,11 +27,11 @@ namespace ContainerLibrary
 
 	public class ItemHandler
 	{
-		public Item[] Items;
+		public Item[] Items { get; private set; }
 		public int Slots => Items.Length;
 
 		public Action<int> OnContentsChanged = slot => { };
-		public Func<int, int> GetSlotLimit = slot => -1;
+		public event Func<int, int> GetSlotLimit = slot => -1;
 		public Func<int, Item, bool> IsItemValid = (slot, item) => true;
 
 		public ItemHandler(int size = 1)
@@ -104,7 +104,7 @@ namespace ContainerLibrary
 
 			Item existing = Items[slot];
 
-			int limit = GetItemLimit(slot, stack);
+			int limit = GetItemLimit(slot);
 
 			if (!existing.IsAir)
 			{
@@ -179,11 +179,14 @@ namespace ContainerLibrary
 			}
 		}
 
-		public int GetItemLimit(int slot, Item stack)
+		public int GetItemLimit(int slot)
 		{
+			Item item = Items[slot];
 			int limit = GetSlotLimit(slot);
+
 			if (limit >= 0) return limit;
-			return !stack.IsAir ? stack.maxStack : 0;
+
+			return !item.IsAir ? item.maxStack : int.MaxValue;
 		}
 
 		public TagCompound Save()
