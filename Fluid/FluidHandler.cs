@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Terraria;
 using Terraria.ModLoader.IO;
 
 namespace ContainerLibrary

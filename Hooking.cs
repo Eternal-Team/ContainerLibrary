@@ -130,19 +130,9 @@ namespace ContainerLibrary
 		private static void Recipe_FindRecipes(ILContext il)
 		{
 			ILCursor cursor = new ILCursor(il);
-			//ILLabel label = cursor.DefineLabel();
-
-			//if (cursor.TryGotoNext(i => i.MatchLdfld<Player>("chest"), i => i.MatchLdcI4(-1), i => i.MatchBeq(out _)))
-			//{
-			//	cursor.Index += 2;
-			//	cursor.Remove();
-			//	cursor.Emit(OpCodes.Beq, label);
-			//}
 
 			if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdcI4(0), i => i.MatchStloc(9)))
 			{
-				//cursor.MarkLabel(label);
-
 				cursor.Emit(OpCodes.Ldloc, 6);
 
 				cursor.EmitDelegate<Func<Dictionary<int, int>, Dictionary<int, int>>>(availableItems =>
