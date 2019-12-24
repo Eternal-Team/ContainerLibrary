@@ -160,9 +160,12 @@ namespace ContainerLibrary
 			return CopyItemWithSize(existing, toExtract);
 		}
 
-		public void InsertItem(ref Item stack)
+		public void InsertItem(ref Item stack, int minSlot = -1, int maxSlot = -1)
 		{
-			for (int i = 0; i < Slots; i++)
+			if (minSlot < 0) minSlot = 0;
+			if (maxSlot < 1 || maxSlot > Slots) maxSlot = Slots;
+
+			for (int i = minSlot; i < maxSlot; i++)
 			{
 				Item other = Items[i];
 				if (other.type == stack.type && other.stack < other.maxStack)
@@ -172,7 +175,7 @@ namespace ContainerLibrary
 				}
 			}
 
-			for (int i = 0; i < Slots; i++)
+			for (int i = minSlot; i < maxSlot; i++)
 			{
 				stack = InsertItem(i, stack);
 				if (stack.IsAir) return;
