@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Terraria;
 using Terraria.ID;
+using Terraria.ModLoader.IO;
 
 namespace ContainerLibrary
 {
