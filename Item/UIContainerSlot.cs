@@ -1,5 +1,6 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI.Elements;
+using BaseLibrary.Input;
+using BaseLibrary.UI.New;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -34,17 +35,19 @@ namespace ContainerLibrary
 
 		public UIContainerSlot(Func<ItemHandler> itemHandler, int slot = 0)
 		{
-			Width = (40, 0);
-			Height = (40, 0);
+			Width.Pixels = 40;
+			Height.Pixels = 40;
 
 			this.slot = slot;
 			FuncHandler = itemHandler;
 		}
 
-		public override void Click(UIMouseEvent evt)
+		protected override void MouseClick(MouseButtonEventArgs args)
 		{
 			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
 			{
+				args.Handled = true;
+
 				Item.newAndShiny = false;
 				Player player = Main.LocalPlayer;
 
@@ -52,7 +55,7 @@ namespace ContainerLibrary
 				{
 					ItemUtility.Loot(Handler, slot, Main.LocalPlayer);
 
-					base.Click(evt);
+					base.MouseClick(args);
 
 					return;
 				}
@@ -81,10 +84,10 @@ namespace ContainerLibrary
 				}
 			}
 
-			base.Click(evt);
+			base.MouseClick(args);
 		}
 
-		public override int CompareTo(object obj) => slot.CompareTo(((UIContainerSlot)obj).slot);
+		public override int CompareTo(BaseElement other) => slot.CompareTo(((UIContainerSlot)other).slot);
 
 		private void DrawItem(SpriteBatch spriteBatch, Item item, float scale)
 		{
@@ -133,57 +136,57 @@ namespace ContainerLibrary
 			}
 		}
 
-		protected override void DrawSelf(SpriteBatch spriteBatch)
+		protected override void Draw(SpriteBatch spriteBatch)
 		{
 			spriteBatch.DrawSlot(Dimensions, Color.White, !Item.IsAir && Item.favorited ? Main.inventoryBack10Texture : backgroundTexture);
 
-			float scale = Math.Min(InnerDimensions.Width / backgroundTexture.Width, InnerDimensions.Height / backgroundTexture.Height);
+			float scale = Math.Min(InnerDimensions.Width / (float)backgroundTexture.Width, InnerDimensions.Height / (float)backgroundTexture.Height);
 
 			if (!Item.IsAir) DrawItem(spriteBatch, Item, scale);
 			else if (PreviewItem != null && !PreviewItem.IsAir) spriteBatch.DrawWithEffect(BaseLibrary.BaseLibrary.DesaturateShader, () => DrawItem(spriteBatch, PreviewItem, scale));
 		}
 
-		public override void RightClickContinuous(UIMouseEvent evt)
-		{
-			if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
-			{
-				Player player = Main.LocalPlayer;
-				Item.newAndShiny = false;
+		//public override void RightClickContinuous(UIMouseEvent evt)
+		//{
+		//	if (Handler.IsItemValid(slot, Main.mouseItem) || Main.mouseItem.IsAir)
+		//	{
+		//		Player player = Main.LocalPlayer;
+		//		Item.newAndShiny = false;
 
-				if (player.itemAnimation > 0) return;
+		//		if (player.itemAnimation > 0) return;
 
-				if (Main.stackSplit <= 1 && Main.mouseRight)
-				{
-					if ((Main.mouseItem.IsTheSameAs(Item) || Main.mouseItem.type == 0) && (Main.mouseItem.stack < Main.mouseItem.maxStack || Main.mouseItem.type == 0))
-					{
-						if (Main.mouseItem.type == 0)
-						{
-							Main.mouseItem = Item.Clone();
-							Main.mouseItem.stack = 0;
-							if (Item.favorited && Item.maxStack == 1) Main.mouseItem.favorited = true;
-							Main.mouseItem.favorited = false;
-						}
+		//		if (Main.stackSplit <= 1 && Main.mouseRight)
+		//		{
+		//			if ((Main.mouseItem.IsTheSameAs(Item) || Main.mouseItem.type == 0) && (Main.mouseItem.stack < Main.mouseItem.maxStack || Main.mouseItem.type == 0))
+		//			{
+		//				if (Main.mouseItem.type == 0)
+		//				{
+		//					Main.mouseItem = Item.Clone();
+		//					Main.mouseItem.stack = 0;
+		//					if (Item.favorited && Item.maxStack == 1) Main.mouseItem.favorited = true;
+		//					Main.mouseItem.favorited = false;
+		//				}
 
-						Main.mouseItem.stack++;
-						Handler.Shrink(slot, 1);
+		//				Main.mouseItem.stack++;
+		//				Handler.Shrink(slot, 1);
 
-						Recipe.FindRecipes();
+		//				Recipe.FindRecipes();
 
-						Main.soundInstanceMenuTick.Stop();
-						Main.soundInstanceMenuTick = Main.soundMenuTick.CreateInstance();
-						Main.PlaySound(12);
+		//				Main.soundInstanceMenuTick.Stop();
+		//				Main.soundInstanceMenuTick = Main.soundMenuTick.CreateInstance();
+		//				Main.PlaySound(12);
 
-						Main.stackSplit = Main.stackSplit == 0 ? 15 : Main.stackDelay;
-					}
-				}
-			}
-		}
+		//				Main.stackSplit = Main.stackSplit == 0 ? 15 : Main.stackDelay;
+		//			}
+		//		}
+		//	}
+		//}
 
-		public override void ScrollWheel(UIScrollWheelEvent evt)
+		protected override void MouseScroll(MouseScrollEventArgs args)
 		{
 			if (!Main.keyState.IsKeyDown(Keys.LeftAlt)) return;
 
-			if (evt.ScrollWheelValue > 0)
+			if (args.OffsetY > 0)
 			{
 				if (Main.mouseItem.type == Item.type && Main.mouseItem.stack < Main.mouseItem.maxStack)
 				{
@@ -197,7 +200,7 @@ namespace ContainerLibrary
 					Handler.Shrink(slot, 1);
 				}
 			}
-			else if (evt.ScrollWheelValue < 0)
+			else if (args.OffsetY < 0)
 			{
 				if (Item.type == Main.mouseItem.type && Handler.Grow(slot, 1))
 				{
@@ -210,13 +213,6 @@ namespace ContainerLibrary
 					if (--Main.mouseItem.stack <= 0) Main.mouseItem.TurnToAir();
 				}
 			}
-		}
-
-		public override void Update(GameTime gameTime)
-		{
-			base.Update(gameTime);
-
-			if (IsMouseHovering && Main.keyState.IsKeyDown(Keys.LeftAlt)) BaseLibrary.Hooking.BlockScrolling = true;
 		}
 	}
 }

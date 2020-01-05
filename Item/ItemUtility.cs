@@ -2,10 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Terraria;
 using Terraria.ID;
-using Terraria.ModLoader.IO;
 
 namespace ContainerLibrary
 {
@@ -16,7 +14,7 @@ namespace ContainerLibrary
 		public static bool Grow(this ItemHandler handler, int slot, int quantity)
 		{
 			ref Item item = ref handler.GetItemInSlotByRef(slot);
-			int limit = handler.GetItemLimit(slot);
+			int limit = handler.GetItemLimit(slot) ?? 0;
 			if (item.IsAir || quantity <= 0 || item.stack + quantity > limit) return false;
 
 			item.stack += quantity;

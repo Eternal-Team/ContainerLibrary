@@ -1,12 +1,13 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI.Elements;
+using BaseLibrary.Input;
+using BaseLibrary.Input.Mouse;
+using BaseLibrary.UI.New;
 using FluidLibrary.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
-using Terraria.UI;
 
 namespace ContainerLibrary
 {
@@ -26,16 +27,20 @@ namespace ContainerLibrary
 
 		public UITank(IFluidHandler handler, int slot = 0)
 		{
-			Width = Height = (40, 0);
+			Width.Pixels = Height.Pixels = 40;
 
 			this.slot = slot;
 			fluidHandler = handler;
 		}
 
-		public override int CompareTo(object obj) => slot.CompareTo(((UITank)obj).slot);
+		public override int CompareTo(BaseElement other) => slot.CompareTo(((UITank)other).slot);
 
-		public override void Click(UIMouseEvent evt)
+		protected override void MouseClick(MouseButtonEventArgs args)
 		{
+			if (args.Button != MouseButton.Left) return;
+
+			args.Handled = true;
+
 			Item item = Main.LocalPlayer.GetHeldItem();
 			if (item.type == ItemID.EmptyBucket)
 			{
@@ -97,7 +102,7 @@ namespace ContainerLibrary
 			}
 		}
 
-		protected override void DrawSelf(SpriteBatch spriteBatch)
+		protected override void Draw(SpriteBatch spriteBatch)
 		{
 			spriteBatch.Draw(Main.magicPixel, Dimensions, Utility.ColorPanel);
 			spriteBatch.DrawOutline(Dimensions.Position(), Dimensions.Position() + Dimensions.Size(), Utility.ColorOutline);
@@ -105,7 +110,7 @@ namespace ContainerLibrary
 			if (Fluid != null)
 			{
 				float progress = Fluid.volume / (float)Handler.GetSlotLimit(0);
-				spriteBatch.Draw(FluidLoader.GetTexture(Fluid), new Rectangle((int)Dimensions.X + 2, (int)(Dimensions.Y + 2 + (Dimensions.Height - 4) * (1f - progress)), (int)Dimensions.Width - 4, (int)((Dimensions.Height - 4) * progress)));
+				spriteBatch.Draw(FluidLoader.GetTexture(Fluid), new Rectangle(Dimensions.X + 2, (int)(Dimensions.Y + 2 + (Dimensions.Height - 4) * (1f - progress)), Dimensions.Width - 4, (int)((Dimensions.Height - 4) * progress)));
 			}
 
 			if (IsMouseHovering)

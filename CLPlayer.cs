@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using BaseLibrary.UI.New;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -19,7 +20,7 @@ namespace ContainerLibrary
 			if (item.favorited || item.IsAir || !ValidShiftClickSlots.Contains(context)) return false;
 
 			bool block = false;
-			foreach (UIElement element in BaseLibrary.BaseLibrary.PanelGUI.Elements)
+			foreach (BaseElement element in PanelUI.Instance.Children)
 			{
 				if (element is IItemHandlerUI ui && ui.Handler.HasSpace(item))
 				{

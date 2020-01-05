@@ -104,7 +104,7 @@ namespace ContainerLibrary
 
 			Item existing = Items[slot];
 
-			int limit = GetItemLimit(slot);
+			int limit = GetItemLimit(slot) ?? stack.maxStack;
 
 			if (!existing.IsAir)
 			{
@@ -182,14 +182,14 @@ namespace ContainerLibrary
 			}
 		}
 
-		public int GetItemLimit(int slot)
+		public int? GetItemLimit(int slot)
 		{
 			Item item = Items[slot];
 			int limit = GetSlotLimit(slot);
 
 			if (limit >= 0) return limit;
 
-			return !item.IsAir ? item.maxStack : int.MaxValue;
+			return !item.IsAir ? item.maxStack : default(int?);
 		}
 
 		public TagCompound Save()

@@ -1,4 +1,5 @@
 ﻿using BaseLibrary;
+using BaseLibrary.UI.New;
 using IL.Terraria.UI;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -173,8 +174,8 @@ namespace ContainerLibrary
 				cursor.Emit(OpCodes.Ldloc, 0);
 				cursor.EmitDelegate<Func<Item, bool>>(item =>
 				{
-					Terraria.UI.UIElement uiElement = BaseLibrary.BaseLibrary.PanelGUI.Elements.FirstOrDefault(element => (element as IItemHandlerUI)?.Handler?.HasSpace(item) ?? false);
-					string texture = (uiElement as IItemHandlerUI)?.GetTexture(item);
+					BaseElement BaseElement = PanelUI.Instance.Children.FirstOrDefault(element => (element as IItemHandlerUI)?.Handler?.HasSpace(item) ?? false);
+					string texture = (BaseElement as IItemHandlerUI)?.GetTexture(item);
 
 					if (!string.IsNullOrWhiteSpace(texture))
 					{
