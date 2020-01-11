@@ -30,7 +30,7 @@ namespace ContainerLibrary
 		public Item[] Items { get; private set; }
 		public int Slots => Items.Length;
 
-		public Action<int> OnContentsChanged = slot => { };
+		public Action<int, bool> OnContentsChanged = (slot, user) => { };
 		public event Func<int, int> GetSlotLimit = slot => -1;
 		public Func<int, Item, bool> IsItemValid = (slot, item) => true;
 
@@ -49,7 +49,7 @@ namespace ContainerLibrary
 		{
 			IsItemValid = (Func<int, Item, bool>)IsItemValid.Clone(),
 			GetSlotLimit = (Func<int, int>)GetSlotLimit.Clone(),
-			OnContentsChanged = (Action<int>)OnContentsChanged.Clone()
+			OnContentsChanged = (Action<int, bool>)OnContentsChanged.Clone()
 		};
 
 		public void SetSize(int size)
@@ -58,11 +58,11 @@ namespace ContainerLibrary
 			for (int i = 0; i < size; i++) Items[i] = new Item();
 		}
 
-		public void SetItemInSlot(int slot, Item stack)
+		public void SetItemInSlot(int slot, Item stack, bool user = false)
 		{
 			ValidateSlotIndex(slot);
 			Items[slot] = stack;
-			OnContentsChanged?.Invoke(slot);
+			OnContentsChanged?.Invoke(slot, user);
 		}
 
 		public Item GetItemInSlot(int slot)
@@ -77,14 +77,7 @@ namespace ContainerLibrary
 			return ref Items[slot];
 		}
 
-		public static bool CanItemsStack(Item a, Item b)
-		{
-			//if (a.IsAir || a.type != b.type || a.HasTagCompound() != b.HasTagCompound()) return false;
-
-			//return !a.HasTagCompound() || a.GetTagCompound().Equals(b.GetTagCompound());
-
-			return a.type == b.type;
-		}
+		public static bool CanItemsStack(Item a, Item b) => a.type == b.type;
 
 		public static Item CopyItemWithSize(Item itemStack, int size)
 		{
@@ -94,7 +87,7 @@ namespace ContainerLibrary
 			return copy;
 		}
 
-		public Item InsertItem(int slot, Item stack, bool simulate = false)
+		public Item InsertItem(int slot, Item stack, bool simulate = false, bool user = false)
 		{
 			if (stack.IsAir) return stack;
 
@@ -122,13 +115,13 @@ namespace ContainerLibrary
 				if (existing.IsAir) Items[slot] = reachedLimit ? CopyItemWithSize(stack, limit) : stack.Clone();
 				else this.Grow(slot, reachedLimit ? limit : stack.stack);
 
-				OnContentsChanged?.Invoke(slot);
+				OnContentsChanged?.Invoke(slot, user);
 			}
 
 			return reachedLimit ? CopyItemWithSize(stack, stack.stack - limit) : new Item();
 		}
 
-		public Item ExtractItem(int slot, int amount, bool simulate = false)
+		public Item ExtractItem(int slot, int amount, bool simulate = false, bool user = false)
 		{
 			if (amount == 0) return new Item();
 
@@ -145,7 +138,7 @@ namespace ContainerLibrary
 				if (!simulate)
 				{
 					Items[slot] = new Item();
-					OnContentsChanged?.Invoke(slot);
+					OnContentsChanged?.Invoke(slot, user);
 				}
 
 				return existing;
@@ -154,7 +147,7 @@ namespace ContainerLibrary
 			if (!simulate)
 			{
 				Items[slot] = CopyItemWithSize(existing, existing.stack - toExtract);
-				OnContentsChanged?.Invoke(slot);
+				OnContentsChanged?.Invoke(slot, user);
 			}
 
 			return CopyItemWithSize(existing, toExtract);

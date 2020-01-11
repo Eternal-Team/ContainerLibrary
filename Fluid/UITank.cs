@@ -1,7 +1,7 @@
 ﻿using BaseLibrary;
 using BaseLibrary.Input;
 using BaseLibrary.Input.Mouse;
-using BaseLibrary.UI.New;
+using BaseLibrary.UI;
 using FluidLibrary.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

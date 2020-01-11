@@ -11,7 +11,7 @@ namespace ContainerLibrary
 	{
 		public static bool BlockGetItem;
 
-		public static bool Grow(this ItemHandler handler, int slot, int quantity)
+		public static bool Grow(this ItemHandler handler, int slot, int quantity, bool user = false)
 		{
 			ref Item item = ref handler.GetItemInSlotByRef(slot);
 			int limit = handler.GetItemLimit(slot) ?? 0;
@@ -19,12 +19,12 @@ namespace ContainerLibrary
 
 			item.stack += quantity;
 			if (item.stack <= 0) item.TurnToAir();
-			handler.OnContentsChanged?.Invoke(slot);
+			handler.OnContentsChanged?.Invoke(slot, user);
 
 			return true;
 		}
 
-		public static bool Shrink(this ItemHandler handler, int slot, int quantity)
+		public static bool Shrink(this ItemHandler handler, int slot, int quantity, bool user = false)
 		{
 			ref Item item = ref handler.GetItemInSlotByRef(slot);
 
@@ -32,7 +32,7 @@ namespace ContainerLibrary
 
 			item.stack -= quantity;
 			if (item.stack <= 0) item.TurnToAir();
-			handler.OnContentsChanged?.Invoke(slot);
+			handler.OnContentsChanged?.Invoke(slot, user);
 
 			return true;
 		}
@@ -88,9 +88,6 @@ namespace ContainerLibrary
 			return count;
 		}
 
-		/// <summary>
-		///     Quick stacks items from player inventory to handler
-		/// </summary>
 		public static void QuickStack(ItemHandler handler, Player player)
 		{
 			for (int i = 49; i >= 10; i--)
@@ -103,9 +100,6 @@ namespace ContainerLibrary
 			Main.PlaySound(SoundID.Grab);
 		}
 
-		/// <summary>
-		///     Deposits items from the handler to player inventory
-		/// </summary>
 		public static void LootAll(ItemHandler handler, Player player)
 		{
 			for (int i = 0; i < handler.Slots; i++)
@@ -119,14 +113,11 @@ namespace ContainerLibrary
 					item = Combine(item.Split().Select(split => player.GetItem(player.whoAmI, split)));
 					BlockGetItem = false;
 
-					handler.OnContentsChanged?.Invoke(i);
+					handler.OnContentsChanged?.Invoke(i, true);
 				}
 			}
 		}
 
-		/// <summary>
-		///     Deposits item in a slot from the handler to player inventory
-		/// </summary>
 		public static void Loot(ItemHandler handler, int slot, Player player)
 		{
 			ref Item item = ref handler.GetItemInSlotByRef(slot);
@@ -138,13 +129,10 @@ namespace ContainerLibrary
 				item = Combine(item.Split().Select(split => player.GetItem(player.whoAmI, split)));
 				BlockGetItem = false;
 
-				handler.OnContentsChanged?.Invoke(slot);
+				handler.OnContentsChanged?.Invoke(slot, true);
 			}
 		}
 
-		/// <summary>
-		///     Combines a list of items with the same type into one item
-		/// </summary>
 		public static Item Combine(IEnumerable<Item> items)
 		{
 			List<Item> list = items.ToList();
@@ -165,9 +153,6 @@ namespace ContainerLibrary
 			return ret;
 		}
 
-		/// <summary>
-		///     Splits an item into multiple items with stack clamped to max stack
-		/// </summary>
 		public static IEnumerable<Item> Split(this Item item)
 		{
 			while (item.stack > 0)
@@ -186,9 +171,6 @@ namespace ContainerLibrary
 			}
 		}
 
-		/// <summary>
-		///     Deposits items from the player inventory to the handler
-		/// </summary>
 		public static void DepositAll(ItemHandler handler, Player player)
 		{
 			for (int i = 53; i >= 10; i--)
@@ -200,9 +182,6 @@ namespace ContainerLibrary
 			}
 		}
 
-		/// <summary>
-		///     Drops items in a handler in world with a specified hitbox
-		/// </summary>
 		public static void DropItems(this ItemHandler handler, Rectangle hitbox)
 		{
 			for (var i = 0; i < handler.Slots; i++)
@@ -212,14 +191,11 @@ namespace ContainerLibrary
 				{
 					Item.NewItem(hitbox, item.type, item.stack, prefixGiven: item.prefix);
 					item.TurnToAir();
-					handler.OnContentsChanged(i);
+					handler.OnContentsChanged(i, false);
 				}
 			}
 		}
 
-		/// <summary>
-		///     Checks whether an handler has space for an item
-		/// </summary>
 		public static bool HasSpace(this ItemHandler handler, Item item)
 		{
 			for (int i = 0; i < handler.Slots; i++)

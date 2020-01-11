@@ -1,7 +1,7 @@
 ﻿using BaseLibrary;
 using BaseLibrary.Input;
 using BaseLibrary.Input.Mouse;
-using BaseLibrary.UI.New;
+using BaseLibrary.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -60,10 +60,10 @@ namespace ContainerLibrary
 					return;
 				}
 
-				if (Main.mouseItem.IsAir) Main.mouseItem = Handler.ExtractItem(slot, Item.maxStack);
+				if (Main.mouseItem.IsAir) Main.mouseItem = Handler.ExtractItem(slot, Item.maxStack, user: true);
 				else
 				{
-					if (Item.IsTheSameAs(Main.mouseItem)) Main.mouseItem = Handler.InsertItem(slot, Main.mouseItem);
+					if (Item.IsTheSameAs(Main.mouseItem)) Main.mouseItem = Handler.InsertItem(slot, Main.mouseItem, user: true);
 					else
 					{
 						if (Item.stack <= Item.maxStack)
@@ -168,7 +168,7 @@ namespace ContainerLibrary
 						}
 
 						Main.mouseItem.stack++;
-						Handler.Shrink(slot, 1);
+						Handler.Shrink(slot, 1, true);
 
 						Recipe.FindRecipes();
 
@@ -191,13 +191,13 @@ namespace ContainerLibrary
 				if (Main.mouseItem.type == Item.type && Main.mouseItem.stack < Main.mouseItem.maxStack)
 				{
 					Main.mouseItem.stack++;
-					Handler.Shrink(slot, 1);
+					Handler.Shrink(slot, 1, true);
 				}
 				else if (Main.mouseItem.IsAir)
 				{
 					Main.mouseItem = Item.Clone();
 					Main.mouseItem.stack = 1;
-					Handler.Shrink(slot, 1);
+					Handler.Shrink(slot, 1, true);
 				}
 			}
 			else if (args.OffsetY < 0)

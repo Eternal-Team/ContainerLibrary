@@ -1,5 +1,5 @@
 ﻿using BaseLibrary;
-using BaseLibrary.UI.New;
+using BaseLibrary.UI;
 using IL.Terraria.UI;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;

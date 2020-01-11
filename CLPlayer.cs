@@ -1,4 +1,4 @@
-﻿using BaseLibrary.UI.New;
+﻿using BaseLibrary.UI;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
