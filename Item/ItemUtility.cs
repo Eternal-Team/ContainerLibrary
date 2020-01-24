@@ -75,6 +75,19 @@ namespace ContainerLibrary
 			return num;
 		}
 
+		public static int CountItems(this ItemHandler handler, int type)
+		{
+			int count = 0;
+
+			for (int i = 0; i < handler.Slots; i++)
+			{
+				Item item = handler.GetItemInSlot(i);
+				if (!item.IsAir && item.type == type) count += item.stack;
+			}
+
+			return count;
+		}
+
 		public static int CountItems(this ItemHandler handler, Func<Item, bool> predicate)
 		{
 			int count = 0;
