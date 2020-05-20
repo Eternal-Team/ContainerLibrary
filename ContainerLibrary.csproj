@@ -1,26 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="C:\Users\Itorius\Documents\My Games\Terraria\ModLoader\references\tModLoader.targets" />
-  <PropertyGroup>
-    <AssemblyName>ContainerLibrary</AssemblyName>
-    <TargetFramework>net45</TargetFramework>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  <Target Name="BuildMod" AfterTargets="Build">
-    <Exec Command="&quot;$(tMLBuildServerPath)&quot; -build $(ProjectDir) -eac $(TargetPath) -define $(DefineConstants) -unsafe $(AllowUnsafeBlocks)" />
-     <Exec Command="&quot;G:\C#\Terraria\Mods\FTPUploader.exe&quot; &quot;C:\Users\Itorius\Documents\My Games\Terraria\ModLoader\Mods\$(ProjectName).tmod&quot;" />
-  </Target>
-  <ItemGroup>
-    <None Remove=".gitignore" />
-    <None Remove="App.config" />
-    <None Remove="icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BaseLibrary\BaseLibrary.csproj" />
-    <ProjectReference Include="..\FluidLibrary\FluidLibrary.csproj" />
-  </ItemGroup>
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="&quot;G:\C#\Terraria\TerrariaCompiler\Builds\Debug\Binaries\TerrariaCompiler.exe&quot; &quot;$(ProjectDir)\&quot;" />
-  </Target>
+	<Import Project="C:\Users\Itorius\Documents\My Games\Terraria\ModLoader\references\tModLoader.targets" />
+	<PropertyGroup>
+		<AssemblyName>ContainerLibrary</AssemblyName>
+		<TargetFramework>net45</TargetFramework>
+		<PlatformTarget>x86</PlatformTarget>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+	<Target Name="BuildMod" AfterTargets="Build">
+		<Exec Command="&quot;$(tMLBuildServerPath)&quot; -build &quot;$(ProjectDir.TrimEnd('\'))&quot; -eac &quot;$(TargetPath)&quot; -define $(DefineConstants) -unsafe $(AllowUnsafeBlocks)" />
+		<Exec Command="&quot;G:\C#\Terraria\Mods\FTPUploader.exe&quot; &quot;C:\Users\Itorius\Documents\My Games\Terraria\ModLoader\Mods\$(ProjectName).tmod&quot;" />
+	</Target>
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+		<Exec Command="&quot;G:\C#\Terraria\TerrariaCompiler\Builds\Debug\Binaries\TerrariaCompiler.exe&quot; &quot;$(ProjectDir)\&quot;" />
+	</Target>
+	<ItemGroup>
+		<None Remove=".gitignore" />
+		<None Remove="App.config" />
+		<None Remove="icon.png" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\BaseLibrary\BaseLibrary.csproj" />
+		<ProjectReference Include="..\FluidLibrary\FluidLibrary.csproj" />
+	</ItemGroup>
 </Project>

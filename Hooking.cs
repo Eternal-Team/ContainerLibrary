@@ -44,21 +44,21 @@ namespace ContainerLibrary
 			ILLabel labelAlchemy = cursor.DefineLabel();
 			ILLabel labelCheckAmount = cursor.DefineLabel();
 
-			if (cursor.TryGotoNext(i => i.MatchLdloc(3), i => i.MatchBrfalse(out _)))
+			if (cursor.TryGotoNext(i => i.MatchLdloc(5), i => i.MatchBrfalse(out _)))
 			{
 				cursor.Index++;
 				cursor.Remove();
 				cursor.Emit(OpCodes.Brfalse, labelAlchemy);
 			}
 
-			if (cursor.TryGotoNext(i => i.MatchLdarg(0), i => i.MatchLdfld<Recipe>("alchemy"), i => i.MatchBrfalse(out _)))
+			if (cursor.TryGotoNext( i => i.MatchLdarg(0), i => i.MatchLdfld<Recipe>("alchemy"), i => i.MatchBrfalse(out _)))
 			{
 				cursor.MarkLabel(labelAlchemy);
-
+			
 				cursor.Emit(OpCodes.Ldarg, 0);
 				cursor.Emit<Recipe>(OpCodes.Ldfld, "alchemy");
-				cursor.Emit(OpCodes.Ldloc, 2);
-
+				cursor.Emit(OpCodes.Ldloc, 4);
+			
 				cursor.EmitDelegate<Func<bool, int, int>>((alchemy, amount) =>
 				{
 					if (alchemy && AlchemyApplyChance())
@@ -68,18 +68,18 @@ namespace ContainerLibrary
 						{
 							if (Main.rand.Next(AlchemyConsumeChance()) == 0) reduction++;
 						}
-
+			
 						amount -= reduction;
 					}
-
+			
 					return amount;
 				});
-
-				cursor.Emit(OpCodes.Stloc, 2);
+			
+				cursor.Emit(OpCodes.Stloc, 4);
 				cursor.Emit(OpCodes.Br, labelCheckAmount);
 			}
-
-			if (cursor.TryGotoNext(i => i.MatchLdloc(2), i => i.MatchLdcI4(0), i => i.MatchBle(out _))) cursor.MarkLabel(labelCheckAmount);
+			
+			if (cursor.TryGotoNext(i => i.MatchLdloc(4), i => i.MatchLdcI4(1), i => i.MatchBle(out _))) cursor.MarkLabel(labelCheckAmount);
 
 			if (cursor.TryGotoNext(i => i.MatchLdfld<Player>("chest"), i => i.MatchLdcI4(-1), i => i.MatchBeq(out _)))
 			{
@@ -87,22 +87,22 @@ namespace ContainerLibrary
 				cursor.Remove();
 				cursor.Emit(OpCodes.Beq, label);
 			}
-
-			if (cursor.TryGotoNext(i => i.MatchLdloc(2), i => i.MatchLdcI4(0), i => i.MatchBle(out _)))
-			{
-				cursor.Index += 2;
-				cursor.Remove();
-				cursor.Emit(OpCodes.Ble, label);
-			}
-
-			if (cursor.TryGotoNext(i => i.MatchLdloc(0), i => i.MatchLdcI4(1), i => i.MatchAdd()))
+			
+			// if (cursor.TryGotoNext(i => i.MatchLdloc(2), i => i.MatchLdcI4(0), i => i.MatchBle(out _)))
+			// {
+			// 	cursor.Index += 2;
+			// 	cursor.Remove();
+			// 	cursor.Emit(OpCodes.Ble, label);
+			// }
+			//
+			if (cursor.TryGotoNext(i => i.MatchLdloc(3), i => i.MatchLdcI4(1), i => i.MatchAdd()))
 			{
 				cursor.MarkLabel(label);
-
+			
 				cursor.Emit(OpCodes.Ldarg, 0);
-				cursor.Emit(OpCodes.Ldloc, 1);
 				cursor.Emit(OpCodes.Ldloc, 2);
-
+				cursor.Emit(OpCodes.Ldloc, 4);
+			
 				cursor.EmitDelegate<Func<Recipe, Item, int, int>>((self, ingredient, amount) =>
 				{
 					foreach (ICraftingStorage storage in Main.LocalPlayer.inventory.Where(item => item.modItem is ICraftingStorage).Select(item => (ICraftingStorage)item.modItem))
@@ -111,7 +111,7 @@ namespace ContainerLibrary
 						{
 							if (amount <= 0) return amount;
 							Item item = storage.CraftingHandler.GetItemInSlot(i);
-
+			
 							if (item.IsTheSameAs(ingredient) || self.useWood(item.type, ingredient.type) || self.useSand(item.type, ingredient.type) || self.useIronBar(item.type, ingredient.type) || self.usePressurePlate(item.type, ingredient.type) || self.useFragment(item.type, ingredient.type) || self.AcceptedByItemGroups(item.type, ingredient.type))
 							{
 								int count = Math.Min(amount, item.stack);
@@ -120,11 +120,11 @@ namespace ContainerLibrary
 							}
 						}
 					}
-
+			
 					return amount;
 				});
-
-				cursor.Emit(OpCodes.Stloc, 2);
+			
+				cursor.Emit(OpCodes.Stloc, 4);
 			}
 		}
 
