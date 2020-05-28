@@ -25,9 +25,24 @@ namespace ContainerLibrary
 		string GetTexture(Item item);
 	}
 
+	public enum SlotMode
+	{
+		Both,
+		Input,
+		Output,
+		Locked,
+	}
+
+	// todo: fully implement SlotModes
+	// todo: prevent user from inserting items into output slots
+	
 	public class ItemHandler
 	{
 		public Item[] Items { get; private set; }
+		public SlotMode[] Modes { get; private set; }
+
+		public IEnumerable<Item> OutputSlots => Items.Where((item, i) => Modes[i] == SlotMode.Output).ToArray();
+		
 		public int Slots => Items.Length;
 
 		public Action<int, bool> OnContentsChanged = (slot, user) => { };
@@ -38,11 +53,14 @@ namespace ContainerLibrary
 		{
 			Items = new Item[size];
 			for (int i = 0; i < size; i++) Items[i] = new Item();
+
+			Modes = new SlotMode[size];
 		}
 
 		public ItemHandler(Item[] items)
 		{
 			Items = items;
+			Modes = new SlotMode[items.Length];
 		}
 
 		public ItemHandler Clone() => new ItemHandler(Items.Select(x => x.Clone()).ToArray())
@@ -160,6 +178,8 @@ namespace ContainerLibrary
 
 			for (int i = minSlot; i < maxSlot; i++)
 			{
+				if (Modes[i] != SlotMode.Both && Modes[i] != SlotMode.Output) continue;
+				
 				Item other = Items[i];
 				if (other.type == stack.type && other.stack < other.maxStack)
 				{
@@ -170,6 +190,8 @@ namespace ContainerLibrary
 
 			for (int i = minSlot; i < maxSlot; i++)
 			{
+				if (Modes[i] != SlotMode.Both && Modes[i] != SlotMode.Output) continue;
+
 				stack = InsertItem(i, stack);
 				if (stack.IsAir) return;
 			}
@@ -190,7 +212,8 @@ namespace ContainerLibrary
 			List<TagCompound> items = Items.Select((item, slot) => new TagCompound
 			{
 				["Slot"] = slot,
-				["Item"] = ItemIO.Save(item)
+				["Item"] = ItemIO.Save(item),
+				["Mode"] = (byte)Modes[slot]
 			}).ToList();
 			return new TagCompound
 			{
@@ -206,8 +229,13 @@ namespace ContainerLibrary
 			{
 				Item item = ItemIO.Load(compound.GetCompound("Item"));
 				int slot = compound.GetInt("Slot");
+				SlotMode mode = (SlotMode)compound.GetByte("Mode");
 
-				if (slot >= 0 && slot < Slots) Items[slot] = item;
+				if (slot >= 0 && slot < Slots)
+				{
+					Items[slot] = item;
+					Modes[slot] = mode;
+				}
 			}
 		}
 

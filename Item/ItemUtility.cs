@@ -11,6 +11,16 @@ namespace ContainerLibrary
 	{
 		public static bool BlockGetItem;
 
+		public static int GetFirstInput(this ItemHandler handler)
+		{
+			for (int i = 0; i < handler.Slots; i++)
+			{
+				if ((handler.Modes[i] == SlotMode.Both || handler.Modes[i] == SlotMode.Input) && !handler.Items[i].IsAir) return i;
+			}
+
+			return -1;
+		}
+
 		public static bool Grow(this ItemHandler handler, int slot, int quantity, bool user = false)
 		{
 			ref Item item = ref handler.GetItemInSlotByRef(slot);

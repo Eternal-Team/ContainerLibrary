@@ -36,8 +36,8 @@ namespace ContainerLibrary
 
 		public UIContainerSlot(Func<ItemHandler> itemHandler, int slot = 0)
 		{
-			Width.Pixels = 40;
-			Height.Pixels = 40;
+			Width.Pixels = SlotSize;
+			Height.Pixels = SlotSize;
 
 			this.slot = slot;
 			FuncHandler = itemHandler;
