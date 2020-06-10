@@ -79,7 +79,7 @@ namespace ContainerLibrary
 				cursor.Emit(OpCodes.Br, labelCheckAmount);
 			}
 			
-			if (cursor.TryGotoNext(i => i.MatchLdloc(4), i => i.MatchLdcI4(1), i => i.MatchBle(out _))) cursor.MarkLabel(labelCheckAmount);
+			if (cursor.TryGotoNext(i => i.MatchLdloc(4), i => i.MatchLdcI4(0), i => i.MatchBle(out _))) cursor.MarkLabel(labelCheckAmount);
 
 			if (cursor.TryGotoNext(i => i.MatchLdfld<Player>("chest"), i => i.MatchLdcI4(-1), i => i.MatchBeq(out _)))
 			{
