@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\Mods.targets" />
+	<PropertyGroup>
+		<AssemblyName>ContainerLibrary</AssemblyName>
+		<TargetFramework>net6.0</TargetFramework>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="tModLoader.CodeAssist" Version="0.1.*" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Remove="README.md" />
+		<None Remove=".gitignore" />
+	</ItemGroup>
+</Project>

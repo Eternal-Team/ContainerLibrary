@@ -1,0 +1,9 @@
+author = Itorius & team
+version = 2.0
+displayName = Container Library
+homepage = https://terraria.itorius.com/
+hideCode = false
+hideResources = true
+includeSource = false
+buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, .git\*, .editorconfig, .gitignore, *.sln, *.md
+includePDB = true
