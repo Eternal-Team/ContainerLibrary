@@ -17,8 +17,8 @@ internal static class Hooking
 	{
 		IL.Terraria.Main.DrawInterface_36_Cursor += DrawCursor;
 		IL.Terraria.UI.ItemSlot.OverrideHover_ItemArray_int_int += ItemSlot_OverrideHover;
-		// Recipe.FindRecipes += Hooking.Recipe_FindRecipes;
-		// Recipe.Create += Hooking.Recipe_Create;
+		IL.Terraria.Recipe.FindRecipes += Recipe_FindRecipes;
+		IL.Terraria.Recipe.Create += Recipe_Create;
 	}
 
 	#region Cursor
@@ -63,7 +63,6 @@ internal static class Hooking
 			cursor.MarkLabel(label);
 		}
 	}
-	#endregion
 
 	internal static void ItemSlot_OverrideHover(ILContext il)
 	{
@@ -123,7 +122,9 @@ internal static class Hooking
 			cursor.Emit(OpCodes.Brtrue, label);
 		}
 	}
+	#endregion
 
+	#region Crafting
 	private static IEnumerable<ICraftingStorage> GetCraftingStorages(Player player)
 	{
 		foreach (Item item in player.inventory)
@@ -132,118 +133,72 @@ internal static class Hooking
 		}
 	}
 
-	// private static void Recipe_FindRecipes(ILContext il)
-	// {
-	// 	ILCursor cursor = new ILCursor(il);
-	//
-	// 	if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdcI4(0), i => i.MatchStloc(31)))
-	// 	{
-	// 		cursor.Emit(OpCodes.Ldloc, 12);
-	//
-	// 		cursor.EmitDelegate<Func<Dictionary<int, int>, Dictionary<int, int>>>(availableItems =>
-	// 		{
-	// 			foreach (ICraftingStorage craftingStorage in GetCraftingStorages(Main.LocalPlayer))
-	// 			{
-	// 				ItemStorage storage = craftingStorage.GetItemStorage();
-	//
-	// 				foreach (int slot in craftingStorage.GetSlotsForCrafting())
-	// 				{
-	// 					Item item = storage[slot];
-	// 					if (item.stack > 0)
-	// 					{
-	// 						if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;
-	// 						else availableItems[item.netID] = item.stack;
-	// 					}
-	// 				}
-	// 			}
-	//
-	// 			return availableItems;
-	// 		});
-	//
-	// 		cursor.Emit(OpCodes.Stloc, 12);
-	// 	}
-	// }
+	private static void Recipe_FindRecipes(ILContext il)
+	{
+		ILCursor cursor = new ILCursor(il);
 
-	// private static void Recipe_Create(ILContext il)
-	// {
-	// 	bool AcceptedByItemGroups(Recipe recipe, int invType, int reqType)
-	// 	{
-	// 		return recipe.acceptedGroups.Any(num =>
-	// 		{
-	// 			var group = RecipeGroup.recipeGroups[num];
-	// 			return group.ContainsItem(invType) && group.ContainsItem(reqType);
-	// 		});
-	// 	}
-	//
-	// 	ILCursor cursor = new ILCursor(il);
-	//
-	// 	if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdloc(3), i => i.MatchLdcI4(1), i => i.MatchAdd()))
-	// 	{
-	// 		cursor.Emit(OpCodes.Ldarg, 0);
-	// 		cursor.Emit(OpCodes.Ldloc, 2);
-	// 		cursor.Emit(OpCodes.Ldloc, 4);
-	//
-	// 		cursor.EmitDelegate<Func<Recipe, Item, int, int>>((self, ingredient, amount) =>
-	// 		{
-	// 			foreach (ICraftingStorage craftingStorage in GetCraftingStorages(Main.LocalPlayer))
-	// 			{
-	// 				ItemStorage storage = craftingStorage.GetItemStorage();
-	//
-	// 				foreach (int slot in craftingStorage.GetSlotsForCrafting())
-	// 				{
-	// 					if (amount <= 0) return amount;
-	// 					Item item = storage[slot];
-	//
-	// 					if (!item.IsTheSameAs(ingredient) && !AcceptedByItemGroups(self, item.type, ingredient.type)) continue;
-	//
-	// 					int count = Math.Min(amount, item.stack);
-	// 					amount -= count;
-	// 					storage.ModifyStackSize(Main.LocalPlayer, slot, -count);
-	// 				}
-	// 			}
-	//
-	// 			return amount;
-	// 		});
-	//
-	// 		cursor.Emit(OpCodes.Stloc, 4);
-	// 	}
-	// }
+		if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdcI4(0), i => i.MatchStloc(31)))
+		{
+			cursor.Emit(OpCodes.Ldloc, 12);
 
-	// internal static void ItemSlot_OverrideHover(ILContext il)
-	// {
-	// 	ILCursor cursor = new ILCursor(il);
-	// 	ILLabel label = cursor.DefineLabel();
-	// 	ILLabel caseStart = cursor.DefineLabel();
-	//
-	// 	ILLabel[] targets = null;
-	// 	if (cursor.TryGotoNext(i => i.MatchSwitch(out targets))) targets[0] = caseStart;
-	//
-	// 	if (cursor.TryGotoNext(i => i.MatchLdsfld(typeof(Main).GetField("npcShop", BindingFlags.Public | BindingFlags.Static))))
-	// 	{
-	// 		cursor.MarkLabel(caseStart);
-	//
-	// 		cursor.Emit(OpCodes.Ldloc, 0);
-	// 		cursor.EmitDelegate<Func<Item, bool>>(item =>
-	// 		{
-	// 			// BaseElement BaseElement = PanelUI.Instance.Children.FirstOrDefault(element => (element as IItemHandlerUI)?.Handler?.HasSpace(item) ?? false);
-	// 			// string texture = (BaseElement as IItemHandlerUI)?.GetTexture(item);
-	// 			//
-	// 			// if (!string.IsNullOrWhiteSpace(texture))
-	// 			// {
-	// 			// 	BaseLibrary.Hooking.SetCursor(texture);
-	// 			// 	return true;
-	// 			// }
-	//
-	// 			Main.NewText("overriding cursor");
-	// 			
-	// 			return false;
-	// 		});
-	// 		cursor.Emit(OpCodes.Brtrue, label);
-	// 	}
-	//
+			cursor.EmitDelegate<Func<Dictionary<int, int>, Dictionary<int, int>>>(availableItems =>
+			{
+				foreach (ICraftingStorage craftingStorage in GetCraftingStorages(Main.LocalPlayer))
+				{
+					ItemStorage storage = craftingStorage.GetItemStorage();
 
-	// 	// if (cursor.TryGotoNext(i => i.MatchLdsflda(typeof(Main).GetField("keyState", Utility.defaultFlags)))) cursor.MarkLabel(label);
+					foreach (int slot in craftingStorage.GetSlotsForCrafting())
+					{
+						Item item = storage[slot];
+						if (item.stack > 0)
+						{
+							if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;
+							else availableItems[item.netID] = item.stack;
+						}
+					}
+				}
 
+				return availableItems;
+			});
 
-	// }
+			cursor.Emit(OpCodes.Stloc, 12);
+		}
+	}
+
+	private static void Recipe_Create(ILContext il)
+	{
+		ILCursor cursor = new ILCursor(il);
+
+		if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdsfld<Main>("player"), i => i.MatchLdsfld<Main>("myPlayer"), i => i.MatchLdelemRef(), i => i.MatchLdfld<Player>("chest")))
+		{
+			cursor.Emit(OpCodes.Ldarg, 0);
+			cursor.Emit(OpCodes.Ldloc, 3);
+			cursor.Emit(OpCodes.Ldloc, 4);
+
+			cursor.EmitDelegate<Func<Recipe, Item, int, int>>((self, ingredient, amount) =>
+			{
+				foreach (ICraftingStorage craftingStorage in GetCraftingStorages(Main.LocalPlayer))
+				{
+					ItemStorage storage = craftingStorage.GetItemStorage();
+
+					foreach (int slot in craftingStorage.GetSlotsForCrafting())
+					{
+						if (amount <= 0) return amount;
+						Item item = storage[slot];
+
+						if (item.type != ingredient.type && !self.AcceptedByItemGroups(item.type, ingredient.type)) continue;
+
+						int count = Math.Min(amount, item.stack);
+						amount -= count;
+						storage.ModifyStackSize(Main.LocalPlayer, slot, -count);
+					}
+				}
+
+				return amount;
+			});
+
+			cursor.Emit(OpCodes.Stloc, 4);
+		}
+	}
+	#endregion
 }
