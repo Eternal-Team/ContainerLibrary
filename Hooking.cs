@@ -22,7 +22,7 @@ internal static class Hooking
 	}
 
 	#region Cursor
-	private const int CustomCursorOverride = 1000;
+	private const int CustomCursorOverride = 1001;
 	private static Asset<Texture2D> CursorTexture;
 	private static Vector2 CursorOffset;
 	private static bool Pulse;
@@ -128,8 +128,7 @@ internal static class Hooking
 	{
 		foreach (Item item in player.inventory)
 		{
-			if (item.IsAir || item.ModItem is not ICraftingStorage storage) continue;
-			yield return storage;
+			if (!item.IsAir && item.ModItem is ICraftingStorage storage) yield return storage;
 		}
 	}
 
