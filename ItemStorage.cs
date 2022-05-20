@@ -295,6 +295,16 @@ public partial class ItemStorage : IReadOnlyList<Item>
 	}
 
 	#region IO
+	public virtual TagCompound Save() => new()
+	{
+		["Value"] = Items.ToList()
+	};
+
+	public virtual void Load(TagCompound tag)
+	{
+		Items = tag.GetList<Item>("Value").ToArray();
+	}
+
 	public virtual void Write(BinaryWriter writer)
 	{
 		writer.Write(Count);

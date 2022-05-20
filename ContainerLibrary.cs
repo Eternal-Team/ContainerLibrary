@@ -9,6 +9,8 @@ public class ContainerLibrary : Mod
 
 	public override void Load()
 	{
-		ItemStorageSerializer.Load();
+		Hooking.Load();
+
+		// ItemStorageSerializer.Load();
 	}
 }
