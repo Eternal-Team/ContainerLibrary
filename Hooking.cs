@@ -79,7 +79,7 @@ internal static class Hooking
 				{
 					if (ui.GetItemStorage().CanInsertItem(Main.LocalPlayer, item))
 					{
-						string texture = ui.GetTexture(item);
+						string texture = ui.GetCursorTexture(item);
 
 						if (!string.IsNullOrWhiteSpace(texture))
 						{
@@ -106,7 +106,7 @@ internal static class Hooking
 				{
 					if (ui.GetItemStorage().CanInsertItem(Main.LocalPlayer, item))
 					{
-						string texture = ui.GetTexture(item);
+						string texture = ui.GetCursorTexture(item);
 
 						if (!string.IsNullOrWhiteSpace(texture))
 						{

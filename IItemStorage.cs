@@ -17,6 +17,6 @@ public interface IItemStorageUI
 {
 	ItemStorage GetItemStorage();
 
-	bool IsVisible();
-	string GetTexture(Item item);
+	// bool IsVisible();
+	string GetCursorTexture(Item item);
 }
