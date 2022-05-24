@@ -97,16 +97,16 @@ public static partial class ItemStorageUtility
 		Item item = storage[slot].Clone();
 		if (!item.IsAir)
 		{
-			int count = item.stack;
+			int count = 0;
 			foreach (var split in item.Split())
 			{
 				split.position = player.Center;
 				split.noGrabDelay = 0;
 				Item fail = player.GetItem(player.whoAmI, split, GetItemSettings.LootAllSettings);
-				if (fail.IsAir) count -= split.stack;
+				if (fail.IsAir) count += split.stack;
 				else
 				{
-					count -= split.stack - fail.stack;
+					count += split.stack - fail.stack;
 					break;
 				}
 			}
