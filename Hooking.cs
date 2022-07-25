@@ -15,53 +15,9 @@ internal static class Hooking
 {
 	internal static void Load()
 	{
-		IL.Terraria.Main.DrawInterface_36_Cursor += DrawCursor;
 		IL.Terraria.UI.ItemSlot.OverrideHover_ItemArray_int_int += ItemSlot_OverrideHover;
 		IL.Terraria.Recipe.FindRecipes += Recipe_FindRecipes;
 		IL.Terraria.Recipe.Create += Recipe_Create;
-	}
-
-	#region Cursor
-	private const int CustomCursorOverride = 1001;
-	private static Asset<Texture2D> CursorTexture;
-	private static Vector2 CursorOffset;
-	private static bool Pulse;
-
-	public static void SetCursor(string texture, Vector2? offset = null, bool pulse = true)
-	{
-		Main.cursorOverride = CustomCursorOverride;
-		CursorTexture = ModContent.Request<Texture2D>(texture);
-		CursorOffset = offset ?? Vector2.Zero;
-		Pulse = pulse;
-	}
-
-	internal static void DrawCursor(ILContext il)
-	{
-		ILCursor cursor = new ILCursor(il);
-		ILLabel label = cursor.DefineLabel();
-
-		if (cursor.TryGotoNext(i => i.MatchLdsfld(typeof(Main).GetField("cursorOverride", BindingFlags.Public | BindingFlags.Static))))
-		{
-			cursor.Emit(OpCodes.Ldsfld, typeof(Main).GetField("cursorOverride", BindingFlags.Public | BindingFlags.Static));
-			cursor.Emit(OpCodes.Ldc_I4, CustomCursorOverride);
-			cursor.Emit(OpCodes.Ceq);
-			cursor.Emit(OpCodes.Brfalse, label);
-
-			cursor.Emit(OpCodes.Ldloc, 5);
-			cursor.Emit(OpCodes.Ldloc, 7);
-
-			cursor.EmitDelegate<Action<float, float>>((rotation, scale) =>
-			{
-				if (CursorTexture == null) return;
-
-				float texScale = Math.Min(20f / CursorTexture.Value.Width, 20f / CursorTexture.Value.Height);
-				float s = Pulse ? Main.cursorScale * texScale : texScale;
-				Main.spriteBatch.Draw(CursorTexture.Value, new Vector2(Main.mouseX, Main.mouseY), null, Color.White, rotation, CursorOffset, s, SpriteEffects.None, 0f);
-			});
-			cursor.Emit(OpCodes.Ret);
-
-			cursor.MarkLabel(label);
-		}
 	}
 
 	internal static void ItemSlot_OverrideHover(ILContext il)
@@ -70,7 +26,7 @@ internal static class Hooking
 
 		if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdarg(1), i => i.MatchBrtrue(out _), i => i.MatchLdsfld<Main>("InReforgeMenu")))
 		{
-			ILLabel label = cursor.Instrs[cursor.Index - 2].Operand as ILLabel;
+			ILLabel? label = cursor.Instrs[cursor.Index+1].Operand as ILLabel;
 
 			cursor.Emit(OpCodes.Ldloc, 0);
 			cursor.EmitDelegate<Func<Item, bool>>(item =>
@@ -83,7 +39,7 @@ internal static class Hooking
 
 						if (!string.IsNullOrWhiteSpace(texture))
 						{
-							SetCursor(texture);
+							CustomCursor.CustomCursor.SetCursor(texture);
 							return true;
 						}
 					}
@@ -110,7 +66,7 @@ internal static class Hooking
 
 						if (!string.IsNullOrWhiteSpace(texture))
 						{
-							SetCursor(texture);
+							CustomCursor.CustomCursor.SetCursor(texture);
 							return true;
 						}
 					}
@@ -122,7 +78,6 @@ internal static class Hooking
 			cursor.Emit(OpCodes.Brtrue, label);
 		}
 	}
-	#endregion
 
 	#region Crafting
 	private static IEnumerable<ICraftingStorage> GetCraftingStorages(Player player)

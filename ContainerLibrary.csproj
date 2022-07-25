@@ -15,4 +15,7 @@
 		<None Remove="README.md" />
 		<None Remove=".gitignore" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\CustomCursor\CustomCursor.csproj" />
+	</ItemGroup>
 </Project>
