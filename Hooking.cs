@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using ReLogic.Content;
 using Terraria;
-using Terraria.ModLoader;
 
 namespace ContainerLibrary;
 
@@ -26,7 +21,7 @@ internal static class Hooking
 
 		if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdarg(1), i => i.MatchBrtrue(out _), i => i.MatchLdsfld<Main>("InReforgeMenu")))
 		{
-			ILLabel? label = cursor.Instrs[cursor.Index+1].Operand as ILLabel;
+			ILLabel? label = cursor.Instrs[cursor.Index + 1].Operand as ILLabel;
 
 			cursor.Emit(OpCodes.Ldloc, 0);
 			cursor.EmitDelegate<Func<Item, bool>>(item =>
