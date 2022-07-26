@@ -1,5 +1,5 @@
 author = Itorius & team
-version = 2.0
+version = 2.0.1
 displayName = Container Library
 homepage = https://terraria.itorius.com/
 hideCode = false

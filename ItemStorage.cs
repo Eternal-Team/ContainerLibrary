@@ -87,9 +87,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 		if (!inStorage.IsAir && (toInsert.type != inStorage.type || !ItemLoader.CanStack(inStorage, toInsert)))
 			return false;
 
-		int slotSize = GetSlotSize(slot, toInsert);
-		if (slotSize < 0)
-			slotSize = int.MaxValue;
+		int slotSize = MaxStackFor(slot, toInsert);
 		int toInsertCount = Utility.Min(slotSize, slotSize - inStorage.stack, toInsert.stack);
 		if (toInsertCount <= 0)
 			return false;
@@ -123,11 +121,18 @@ public partial class ItemStorage : IReadOnlyList<Item>
 			return false;
 		}
 
+		if (toInsert.IsACoin)
+		{
+			bool insertCoins = this.InsertCoins(user, Utility.GetCoinValue(toInsert));
+			if (insertCoins) toInsert = new Item();
+			return insertCoins;
+		}
+
 		bool ret = false;
 		for (int i = 0; i < Count; i++)
 		{
 			Item inStorage = Items[i];
-			if (toInsert.type == inStorage.type && ItemLoader.CanStack(inStorage, toInsert) && inStorage.stack < inStorage.maxStack)
+			if (toInsert.type == inStorage.type && ItemLoader.CanStack(inStorage, toInsert) && inStorage.stack < MaxStackFor(i, toInsert))
 			{
 				ret |= InsertItem(user, i, ref toInsert);
 			}
@@ -183,7 +188,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 		}
 
 		item = CloneItemWithSize(item, toExtract);
-		Items[slot] = CloneItemWithSize(item, item.stack - toExtract);
+		Items[slot] = CloneItemWithSize(item, Items[slot].stack - toExtract);
 
 		return true;
 	}
