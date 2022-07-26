@@ -87,9 +87,9 @@ internal static class Hooking
 	{
 		ILCursor cursor = new ILCursor(il);
 
-		if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdcI4(0), i => i.MatchStloc(31)))
+		if (cursor.TryGotoNext(MoveType.AfterLabel, i => i.MatchLdcI4(0), i => i.MatchStloc(9)))
 		{
-			cursor.Emit(OpCodes.Ldloc, 12);
+			cursor.Emit(OpCodes.Ldloc, 6);
 
 			cursor.EmitDelegate<Func<Dictionary<int, int>, Dictionary<int, int>>>(availableItems =>
 			{
@@ -111,7 +111,7 @@ internal static class Hooking
 				return availableItems;
 			});
 
-			cursor.Emit(OpCodes.Stloc, 12);
+			cursor.Emit(OpCodes.Stloc, 6);
 		}
 	}
 
