@@ -9,7 +9,6 @@ using Terraria.ModLoader.IO;
 
 namespace ContainerLibrary;
 
-// TODO: improve networking, something like dirty slots that need to be synced at the end of update method
 public partial class ItemStorage : IReadOnlyList<Item>
 {
 	[Flags]
@@ -21,6 +20,8 @@ public partial class ItemStorage : IReadOnlyList<Item>
 	}
 
 	internal Item[] Items;
+
+	public event Action<object?, Operation, int>? OnContentsChanged;
 
 	public int Count => Items.Length;
 
@@ -73,6 +74,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 	/// True if the item was successfully inserted, even partially. False if the item is air, if the slot is already
 	/// fully occupied, if the slot rejects the item, or if the slot rejects the user.
 	/// </returns>
+	// note: return enum instead? nullorair, cantinteract, full, partialsuccess, success
 	public bool InsertItem(object? user, int slot, ref Item? toInsert)
 	{
 		if (toInsert is null || toInsert.IsAir)
@@ -94,14 +96,15 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 		bool reachedLimit = toInsert.stack > toInsertCount;
 
-		// OnItemInsert?.Invoke(user, slot, item);
-
 		if (inStorage.IsAir)
 			Items[slot] = reachedLimit ? CloneItemWithSize(toInsert, toInsertCount) : toInsert;
 		else
 			inStorage.stack += toInsertCount;
 
 		toInsert = reachedLimit ? CloneItemWithSize(toInsert, toInsert.stack - toInsertCount) : new Item();
+
+		OnContentsChanged?.Invoke(user, Operation.Insert, slot);
+
 		return true;
 	}
 
@@ -176,8 +179,6 @@ public partial class ItemStorage : IReadOnlyList<Item>
 		if (item.IsAir)
 			return false;
 
-		// OnItemRemove?.Invoke(user, slot);
-
 		int toExtract = Utility.Min(amount < 0 ? int.MaxValue : amount, item.maxStack, item.stack);
 
 		if (item.stack <= toExtract)
@@ -189,6 +190,8 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 		item = CloneItemWithSize(item, toExtract);
 		Items[slot] = CloneItemWithSize(item, Items[slot].stack - toExtract);
+
+		OnContentsChanged?.Invoke(user, Operation.Remove, slot);
 
 		return true;
 	}
@@ -224,10 +227,10 @@ public partial class ItemStorage : IReadOnlyList<Item>
 			return false;
 		}
 
-		// OnItemRemove?.Invoke(user, slot);
-		// OnItemInsert?.Invoke(user, slot, newStack);
-
 		Utils.Swap(ref Items[slot], ref newStack);
+
+		OnContentsChanged?.Invoke(user, Operation.Remove, slot);
+		OnContentsChanged?.Invoke(user, Operation.Insert, slot);
 
 		return true;
 	}
@@ -258,7 +261,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 			item.stack += quantity;
 			if (item.stack <= 0) item.TurnToAir();
-			// OnContentsChanged(slot, user);
+			OnContentsChanged?.Invoke(user, Operation.Remove, slot);
 		}
 		else
 		{
@@ -266,7 +269,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 			if (item.stack + quantity > limit) return false;
 
 			item.stack += quantity;
-			// OnContentsChanged(slot, user);
+			OnContentsChanged?.Invoke(user, Operation.Insert, slot);
 		}
 
 		return true;
@@ -324,7 +327,6 @@ public partial class ItemStorage : IReadOnlyList<Item>
 	{
 		ValidateSlotIndex(slot);
 
-		writer.Write(slot);
 		ItemIO.Send(Items[slot], writer, true, true);
 	}
 
@@ -361,8 +363,5 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-	public override string ToString()
-	{
-		return $"{GetType()} with {Count} slots";
-	}
+	public override string ToString() => $"{GetType()} with {Count} slots";
 }

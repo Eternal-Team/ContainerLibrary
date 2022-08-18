@@ -1,1 +1,3 @@
+HIGHLY EXPERIMENTAL, please report any bugs to my Discord server (discord.gg/EP9nfZV #bug-reports channel)
+
 Allows adding of custom containers while maintaining cross-mod compatibility

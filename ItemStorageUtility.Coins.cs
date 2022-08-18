@@ -250,6 +250,8 @@ public static partial class ItemStorageUtility
 			old[i] = storage[i].Clone();
 		}
 
+		HashSet<int> effectedSlots = new();
+
 		// platinum coin
 		while (amount >= 1000000)
 		{
@@ -262,6 +264,7 @@ public static partial class ItemStorageUtility
 				while (storage[i].type == ItemID.PlatinumCoin && storage[i].stack < storage.MaxStackFor(i, storage[i]) && amount >= 1000000)
 				{
 					storage[i].stack++;
+					effectedSlots.Add(i);
 					amount -= 1000000;
 					DoCoins(i);
 					if (storage[i].stack == 0 && emptyIndex == -1)
@@ -274,6 +277,7 @@ public static partial class ItemStorageUtility
 				if (emptyIndex == -1)
 					goto Fail;
 
+				effectedSlots.Add(emptyIndex);
 				storage[emptyIndex].SetDefaults(ItemID.PlatinumCoin);
 				amount -= 1000000;
 			}
@@ -291,6 +295,7 @@ public static partial class ItemStorageUtility
 				while (storage[i].type == ItemID.GoldCoin && storage[i].stack < storage.MaxStackFor(i, storage[i]) && amount >= 10000)
 				{
 					storage[i].stack++;
+					effectedSlots.Add(i);
 					amount -= 10000;
 					DoCoins(i);
 					if (storage[i].stack == 0 && emptyIndex == -1)
@@ -303,6 +308,7 @@ public static partial class ItemStorageUtility
 				if (emptyIndex == -1)
 					goto Fail;
 
+				effectedSlots.Add(emptyIndex);
 				storage[emptyIndex].SetDefaults(ItemID.GoldCoin);
 				amount -= 10000;
 			}
@@ -320,6 +326,7 @@ public static partial class ItemStorageUtility
 				while (storage[i].type == ItemID.SilverCoin && storage[i].stack < storage.MaxStackFor(i, storage[i]) && amount >= 100)
 				{
 					storage[i].stack++;
+					effectedSlots.Add(i);
 					amount -= 100;
 					DoCoins(i);
 					if (storage[i].stack == 0 && emptyIndex == -1)
@@ -332,6 +339,7 @@ public static partial class ItemStorageUtility
 				if (emptyIndex == -1)
 					goto Fail;
 
+				effectedSlots.Add(emptyIndex);
 				storage[emptyIndex].SetDefaults(ItemID.SilverCoin);
 				amount -= 100;
 			}
@@ -348,6 +356,7 @@ public static partial class ItemStorageUtility
 
 				while (storage[i].type == ItemID.CopperCoin && storage[i].stack < storage.MaxStackFor(i, storage[i]) && amount >= 1)
 				{
+					effectedSlots.Add(i);
 					storage[i].stack++;
 					amount--;
 					DoCoins(i);
@@ -361,10 +370,17 @@ public static partial class ItemStorageUtility
 				if (emptyIndex == -1)
 					goto Fail;
 
+				effectedSlots.Add(emptyIndex);
 				storage[emptyIndex].SetDefaults(ItemID.CopperCoin);
 				amount--;
 			}
 		}
+
+		// todo: syncing
+		// foreach (int slot in effectedSlots)
+		// {
+		// 	storage.OnContentsChanged?.Invoke(user, ItemStorage.Operation.Insert, slot);
+		// }
 
 		return true;
 
@@ -388,8 +404,10 @@ public static partial class ItemStorageUtility
 			{
 				if (storage[i].type == storage[slot].type && i != slot && storage[i].type == storage[slot].type && storage[i].stack < storage.MaxStackFor(i, storage[i]))
 				{
-					storage[i].stack++;
+					effectedSlots.Add(i);
+					effectedSlots.Add(slot);
 
+					storage[i].stack++;
 					storage[slot].SetDefaults();
 					storage[slot].active = false;
 					storage[slot].TurnToAir();
