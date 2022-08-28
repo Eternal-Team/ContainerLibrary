@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.ID;
 
 namespace ContainerLibrary;
 
@@ -68,13 +66,11 @@ public static partial class ItemStorageUtility
 	{
 		for (int i = 49; i >= 10; i--)
 		{
-			Item inventory = player.inventory[i];
+			ref Item inventory = ref player.inventory[i];
 
 			if (!inventory.IsAir && storage.Contains(inventory.type))
 				storage.InsertItem(player, ref inventory);
 		}
-
-		SoundEngine.PlaySound(SoundID.Grab);
 	}
 
 	/// <summary>
@@ -122,12 +118,10 @@ public static partial class ItemStorageUtility
 	{
 		for (int i = 49; i >= 10; i--)
 		{
-			Item item = player.inventory[i];
+			ref Item item = ref player.inventory[i];
 			if (item.IsAir || item.favorited) continue;
 			storage.InsertItem(player, ref item);
 		}
-
-		SoundEngine.PlaySound(SoundID.Grab);
 	}
 
 	/// <summary>
