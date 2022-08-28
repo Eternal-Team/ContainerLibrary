@@ -10,7 +10,7 @@ public interface IItemStorage
 
 public interface ICraftingStorage : IItemStorage
 {
-	IEnumerable<int> GetSlotsForCrafting();
+	ItemStorage GetCraftingStorage();
 }
 
 public interface IItemStorageUI

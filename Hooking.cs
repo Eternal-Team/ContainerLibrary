@@ -95,11 +95,10 @@ internal static class Hooking
 			{
 				foreach (ICraftingStorage craftingStorage in GetCraftingStorages(Main.LocalPlayer))
 				{
-					ItemStorage storage = craftingStorage.GetItemStorage();
+					ItemStorage storage = craftingStorage.GetCraftingStorage();
 
-					foreach (int slot in craftingStorage.GetSlotsForCrafting())
+					foreach (Item item in storage)
 					{
-						Item item = storage[slot];
 						if (item.stack > 0)
 						{
 							if (availableItems.ContainsKey(item.netID)) availableItems[item.netID] += item.stack;
@@ -131,16 +130,16 @@ internal static class Hooking
 				{
 					ItemStorage storage = craftingStorage.GetItemStorage();
 
-					foreach (int slot in craftingStorage.GetSlotsForCrafting())
+					for (int i = 0; i < storage.Count; i++)
 					{
 						if (amount <= 0) return amount;
-						Item item = storage[slot];
+						Item item = storage[i];
 
 						if (item.type != ingredient.type && !self.AcceptedByItemGroups(item.type, ingredient.type)) continue;
 
 						int count = Math.Min(amount, item.stack);
 						amount -= count;
-						storage.ModifyStackSize(Main.LocalPlayer, slot, -count);
+						storage.ModifyStackSize(Main.LocalPlayer, i, -count);
 					}
 				}
 
