@@ -117,7 +117,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 	/// True if the item was successfully inserted, even partially. False if the item is air, if the slot is already
 	/// fully occupied, if the slot rejects the item, or if the slot rejects the user.
 	/// </returns>
-	public bool InsertItem(object? user, ref Item? toInsert)
+	public bool InsertItem(object? user, ref Item? toInsert, int? startIndex = null, int? endIndex = null)
 	{
 		if (toInsert is null || toInsert.IsAir)
 		{
@@ -131,8 +131,12 @@ public partial class ItemStorage : IReadOnlyList<Item>
 			return insertCoins;
 		}
 
+		if (startIndex is null or < 0) startIndex = 0;
+		if (endIndex is null || endIndex > Count) endIndex = Count;
+		if (startIndex > endIndex) startIndex = endIndex;
+		
 		bool ret = false;
-		for (int i = 0; i < Count; i++)
+		for (int i = startIndex.Value; i < endIndex.Value; i++)
 		{
 			Item inStorage = Items[i];
 			if (toInsert.type == inStorage.type && ItemLoader.CanStack(inStorage, toInsert) && inStorage.stack < MaxStackFor(i, toInsert))
@@ -141,7 +145,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 			}
 		}
 
-		for (int i = 0; i < Count; i++)
+		for (int i = startIndex.Value; i < endIndex.Value; i++)
 		{
 			Item other = Items[i];
 			if (other.IsAir)
