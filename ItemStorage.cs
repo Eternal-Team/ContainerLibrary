@@ -127,21 +127,22 @@ public partial class ItemStorage : IReadOnlyList<Item>
 		if (toInsert.IsACoin)
 		{
 			bool insertCoins = this.InsertCoins(user, Utility.GetCoinValue(toInsert));
-			if (insertCoins) toInsert = new Item();
+			if (insertCoins) toInsert.TurnToAir();
 			return insertCoins;
 		}
 
 		if (startIndex is null or < 0) startIndex = 0;
 		if (endIndex is null || endIndex > Count) endIndex = Count;
 		if (startIndex > endIndex) startIndex = endIndex;
-		
+
 		bool ret = false;
 		for (int i = startIndex.Value; i < endIndex.Value; i++)
 		{
 			Item inStorage = Items[i];
-			if (toInsert.type == inStorage.type && ItemLoader.CanStack(inStorage, toInsert) && inStorage.stack < MaxStackFor(i, toInsert))
+			if (toInsert != null && toInsert.type == inStorage.type && ItemLoader.CanStack(inStorage, toInsert) && inStorage.stack < MaxStackFor(i, toInsert))
 			{
 				ret |= InsertItem(user, i, ref toInsert);
+				if (toInsert is { IsAir: true }) return ret;
 			}
 		}
 
@@ -151,6 +152,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 			if (other.IsAir)
 			{
 				ret |= InsertItem(user, i, ref toInsert);
+				if (toInsert is { IsAir: true }) return ret;
 			}
 		}
 
