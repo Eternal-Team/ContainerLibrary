@@ -21,7 +21,9 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 	internal Item[] Items;
 
-	public event Action<object?, Operation, int>? OnContentsChanged;
+	protected virtual void OnContentsChanged(object? user, Operation operation, int slot)
+	{
+	}
 
 	public int Count => Items.Length;
 
@@ -103,7 +105,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 		toInsert = reachedLimit ? CloneItemWithSize(toInsert, toInsert.stack - toInsertCount) : new Item();
 
-		OnContentsChanged?.Invoke(user, Operation.Insert, slot);
+		OnContentsChanged(user, Operation.Insert, slot);
 
 		return true;
 	}
@@ -197,7 +199,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 		item = CloneItemWithSize(item, toExtract);
 		Items[slot] = CloneItemWithSize(item, Items[slot].stack - toExtract);
 
-		OnContentsChanged?.Invoke(user, Operation.Remove, slot);
+		OnContentsChanged(user, Operation.Remove, slot);
 
 		return true;
 	}
@@ -235,8 +237,8 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 		Utils.Swap(ref Items[slot], ref newStack);
 
-		OnContentsChanged?.Invoke(user, Operation.Remove, slot);
-		OnContentsChanged?.Invoke(user, Operation.Insert, slot);
+		OnContentsChanged(user, Operation.Remove, slot);
+		OnContentsChanged(user, Operation.Insert, slot);
 
 		return true;
 	}
@@ -267,7 +269,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 			item.stack += quantity;
 			if (item.stack <= 0) item.TurnToAir();
-			OnContentsChanged?.Invoke(user, Operation.Remove, slot);
+			OnContentsChanged(user, Operation.Remove, slot);
 		}
 		else
 		{
@@ -275,7 +277,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 			if (item.stack + quantity > limit) return false;
 
 			item.stack += quantity;
-			OnContentsChanged?.Invoke(user, Operation.Insert, slot);
+			OnContentsChanged(user, Operation.Insert, slot);
 		}
 
 		return true;
