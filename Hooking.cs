@@ -15,6 +15,7 @@ internal static class Hooking
 		IL.Terraria.Recipe.Create += Recipe_Create;
 	}
 
+	// bug: doesnt work when an item has multiple item storages
 	internal static void ItemSlot_OverrideHover(ILContext il)
 	{
 		ILCursor cursor = new ILCursor(il);
