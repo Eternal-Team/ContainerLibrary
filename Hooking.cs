@@ -128,7 +128,7 @@ internal static class Hooking
 			{
 				foreach (ICraftingStorage craftingStorage in GetCraftingStorages(Main.LocalPlayer))
 				{
-					ItemStorage storage = craftingStorage.GetItemStorage();
+					ItemStorage storage = craftingStorage.GetCraftingStorage();
 
 					for (int i = 0; i < storage.Count; i++)
 					{
