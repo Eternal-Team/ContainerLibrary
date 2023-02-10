@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.ID;
 
 namespace ContainerLibrary;
 
@@ -164,5 +165,26 @@ public static partial class ItemStorageUtility
 				yield break;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Checks whether an item can be inserted into a storage
+	/// Currently prevents nebula pickups, health and mana drops
+	/// </summary>
+	/// <param name="item"></param>
+	/// <returns></returns>
+	public static bool IsValidItemForStorage(Item item)
+	{
+		return item.type switch
+		{
+			ItemID.Heart => false,
+			ItemID.CandyApple => false,
+			ItemID.CandyCane => false,
+			ItemID.Star => false,
+			ItemID.SoulCake => false,
+			ItemID.SugarPlum => false,
+			ItemID.ManaCloakStar => false,
+			_ => !ItemID.Sets.NebulaPickup[item.type]
+		};
 	}
 }
