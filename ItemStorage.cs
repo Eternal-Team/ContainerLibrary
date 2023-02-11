@@ -226,7 +226,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 	{
 		ValidateSlotIndex(slot);
 
-		if (!CanInteract(slot, Operation.Both, user) && !IsItemValid(slot, newStack))
+		if (!CanInteract(slot, Operation.Both, user) || !IsItemValid(slot, newStack))
 			return false;
 
 		int size = MaxStackFor(slot, newStack);
