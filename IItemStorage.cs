@@ -15,8 +15,7 @@ public interface ICraftingStorage : IItemStorage
 
 public interface IItemStorageUI
 {
-	ItemStorage GetItemStorage();
+	IEnumerable<ItemStorage> GetItemStorages();
 
-	// bool IsVisible();
-	string GetCursorTexture(Item item);
+	string GetCursorTexture(Item item, ItemStorage storage);
 }

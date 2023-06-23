@@ -19,6 +19,16 @@ public partial class ItemStorage : IReadOnlyList<Item>
 		Both = 3
 	}
 
+	public enum Result
+	{
+		Success,
+		PartialSuccess,
+		NullOrAir,
+		CantInteract,
+		ItemInvalid,
+		Full
+	}
+
 	internal Item[] Items;
 
 	protected virtual void OnContentsChanged(object? user, Operation operation, int slot)
@@ -76,7 +86,6 @@ public partial class ItemStorage : IReadOnlyList<Item>
 	/// True if the item was successfully inserted, even partially. False if the item is air, if the slot is already
 	/// fully occupied, if the slot rejects the item, or if the slot rejects the user.
 	/// </returns>
-	// note: return enum instead? nullorair, cantinteract, full, partialsuccess, success
 	public bool InsertItem(object? user, int slot, ref Item? toInsert)
 	{
 		if (toInsert is null || toInsert.IsAir)
@@ -84,11 +93,11 @@ public partial class ItemStorage : IReadOnlyList<Item>
 
 		ValidateSlotIndex(slot);
 
-		if (!CanInteract(slot, Operation.Insert, user) || !IsItemValid(slot, toInsert))
+		if (!CanInteract(slot, Operation.Insert, user))
 			return false;
 
 		Item inStorage = Items[slot];
-		if (!inStorage.IsAir && (toInsert.type != inStorage.type || !ItemLoader.CanStack(inStorage, toInsert)))
+		if (!IsItemValid(slot, toInsert) || (!inStorage.IsAir && (toInsert.type != inStorage.type || !ItemLoader.CanStack(inStorage, toInsert))))
 			return false;
 
 		int slotSize = MaxStackFor(slot, toInsert);
@@ -110,6 +119,39 @@ public partial class ItemStorage : IReadOnlyList<Item>
 		return true;
 	}
 
+	/*public Result InsertItem(object? user, int slot, ref Item? toInsert)
+	{
+		if (toInsert is null || toInsert.IsAir)
+			return Result.NullOrAir;
+
+		ValidateSlotIndex(slot);
+
+		if (!CanInteract(slot, Operation.Insert, user))
+			return Result.CantInteract;
+
+		Item inStorage = Items[slot];
+		if (!IsItemValid(slot, toInsert) || (!inStorage.IsAir && (toInsert.type != inStorage.type || !ItemLoader.CanStack(inStorage, toInsert))))
+			return Result.ItemInvalid;
+
+		int slotSize = MaxStackFor(slot, toInsert);
+		int toInsertCount = Utility.Min(slotSize, slotSize - inStorage.stack, toInsert.stack);
+		if (toInsertCount <= 0)
+			return Result.Full;
+
+		bool reachedLimit = toInsert.stack > toInsertCount;
+
+		if (inStorage.IsAir)
+			Items[slot] = reachedLimit ? CloneItemWithSize(toInsert, toInsertCount) : toInsert;
+		else
+			inStorage.stack += toInsertCount;
+
+		toInsert = reachedLimit ? CloneItemWithSize(toInsert, toInsert.stack - toInsertCount) : new Item();
+
+		OnContentsChanged(user, Operation.Insert, slot);
+
+		return reachedLimit ? Result.PartialSuccess : Result.Success;
+	}*/
+
 	/// <summary>
 	/// Puts an item into storage, disregarding what slots to put it in.
 	/// </summary>
@@ -119,6 +161,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 	/// True if the item was successfully inserted, even partially. False if the item is air, if the slot is already
 	/// fully occupied, if the slot rejects the item, or if the slot rejects the user.
 	/// </returns>
+	// note: this would probably have to have multiple results in the form of flags
 	public bool InsertItem(object? user, ref Item? toInsert, int? startIndex = null, int? endIndex = null)
 	{
 		if (toInsert is null || toInsert.IsAir)
@@ -133,7 +176,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 			return insertCoins;
 		}
 
-		if (startIndex is null or < 0) startIndex = 0;
+		if (startIndex is null || startIndex < 0) startIndex = 0;
 		if (endIndex is null || endIndex > Count) endIndex = Count;
 		if (startIndex > endIndex) startIndex = endIndex;
 
@@ -141,7 +184,7 @@ public partial class ItemStorage : IReadOnlyList<Item>
 		for (int i = startIndex.Value; i < endIndex.Value; i++)
 		{
 			Item inStorage = Items[i];
-			if (toInsert != null && toInsert.type == inStorage.type && ItemLoader.CanStack(inStorage, toInsert) && inStorage.stack < MaxStackFor(i, toInsert))
+			if (!inStorage.IsAir)
 			{
 				ret |= InsertItem(user, i, ref toInsert);
 				if (toInsert is { IsAir: true }) return ret;

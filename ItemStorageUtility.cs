@@ -10,6 +10,8 @@ namespace ContainerLibrary;
 
 public static partial class ItemStorageUtility
 {
+	public static bool IsSuccess(this ItemStorage.Result result) => result is ItemStorage.Result.Success or ItemStorage.Result.PartialSuccess;
+
 	/// <summary>
 	/// If you need to check if a storage contains an item, use <see cref="Contains(ItemStorage, int)" />. It is much faster.
 	/// </summary>

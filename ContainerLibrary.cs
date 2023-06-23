@@ -5,12 +5,5 @@ namespace ContainerLibrary;
 
 public class ContainerLibrary : Mod
 {
-	public static List<IItemStorageUI> OpenedStorageUIs = new();
-
-	public override void Load()
-	{
-		Hooking.Load();
-
-		// ItemStorageSerializer.Load();
-	}
+	public static readonly List<IItemStorageUI> OpenedStorageUIs = new();
 }
