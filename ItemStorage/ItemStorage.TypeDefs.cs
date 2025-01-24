@@ -7,10 +7,12 @@ public partial class ItemStorage
 	public enum Result
 	{
 		Success,
-		SourceIsAir,
+		PartialSuccess,
+		ItemIsAir,
 		CantInteract,
 		NotValid,
-		DestinationFull
+		DestinationFull,
+		SourceEmpty
 	}
 
 	[Flags]

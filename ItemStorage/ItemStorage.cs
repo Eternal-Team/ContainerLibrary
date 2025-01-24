@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -6,7 +7,7 @@ namespace ContainerLibrary;
 
 public partial class ItemStorage
 {
-	private readonly Item[] Items;
+	private Item[] Items;
 	private StackOverride? _stackOverride;
 	private CanInteract? _canInteract; // NOTE: should this be a list?
 
@@ -17,6 +18,13 @@ public partial class ItemStorage
 		Items = new Item[slots];
 	}
 
+	public ItemStorage Clone()
+	{
+		ItemStorage storage = (ItemStorage)MemberwiseClone();
+		storage.Items = Items.Select(item => item.Clone()).ToArray();
+		return storage;
+	}
+	
 	public ItemStorage SetStackOverride(StackOverride @override)
 	{
 		_stackOverride = @override;
@@ -29,11 +37,19 @@ public partial class ItemStorage
 		return this;
 	}
 
+	/// <summary>
+	/// Inserts an item into the ItemStorage.
+	/// </summary>
+	/// <param name="user">User that performed this action</param>
+	/// <param name="slot">Slot to which the item is to be inserted</param>
+	/// <param name="insert">Item to insert</param>
+	/// <returns>Success or reason why the action could not be performed.</returns>
 	public Result InsertItem(object? user, int slot, ref Item insert)
 	{
 		ValidateSlotIndex(slot);
 
-		if (insert.IsAir) return Result.SourceIsAir;
+		if (insert.IsAir)
+			return Result.ItemIsAir;
 
 		if (_canInteract?.Invoke(user, slot, Action.Insert) == false)
 			return Result.CantInteract;
@@ -57,6 +73,42 @@ public partial class ItemStorage
 		// OnContentsChanged(user, Operation.Insert, slot);
 
 		return Result.Success;
+	}
+
+	/// <summary>
+	/// Removes an item from the ItemStorage.
+	/// </summary>
+	/// <param name="user">User that performed this action</param>
+	/// <param name="slot">Slot from which the item is to be removed</param>
+	/// <param name="item">Item which was removed</param>
+	/// <param name="amount">Amount to remove, negative values result in up to int.MaxValue items being removed</param>
+	/// <returns>Success or reason why the action could not be performed.</returns>
+	public Result RemoveItem(object? user, int slot, out Item? item, int amount = -1)
+	{
+		ValidateSlotIndex(slot);
+
+		item = null;
+
+		if (amount == 0)
+			return Result.NotValid;
+
+		if (_canInteract?.Invoke(user, slot, Action.Remove) == false)
+			return Result.CantInteract;
+
+		if (Items[slot].IsAir)
+			return Result.SourceEmpty;
+
+		// item = Items[slot];
+
+		int toExtract = Utility.Min(amount < 0 ? int.MaxValue : amount, Items[slot].maxStack, Items[slot].stack);
+		Result result = Items[slot].stack < toExtract ? Result.PartialSuccess : Result.Success; // TODO: should partial removal be a success?
+
+		item = Utility.CloneItemWithSize(item, toExtract);
+		Items[slot] = Utility.CloneItemWithSize(item, Items[slot].stack - toExtract);
+
+		// OnContentsChanged(user, Operation.Remove, slot);
+
+		return result;
 	}
 
 	private void ValidateSlotIndex(int slot)
