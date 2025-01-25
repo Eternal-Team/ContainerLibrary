@@ -122,6 +122,15 @@ public partial class ItemStorage
 		return _stackOverride?.Invoke(slot) ?? item.maxStack;
 	}
 
+	public TagCompound Save() => new TagCompound {
+		["Value"] = Items.ToList()
+	};
+
+	public void Load(TagCompound tag)
+	{
+		Items = tag.GetList<Item>("Value").ToArray();
+	}
+
 	public override string ToString() =>
 		$"ItemStorage with {Items.Length} slots and {Filters.Count} filters";
 }
