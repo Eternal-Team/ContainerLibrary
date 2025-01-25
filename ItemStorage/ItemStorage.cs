@@ -87,7 +87,7 @@ public partial class ItemStorage
 	{
 		ValidateSlotIndex(slot);
 
-		item = null;
+		item = new Item();
 
 		if (amount == 0)
 			return Result.NotValid;
