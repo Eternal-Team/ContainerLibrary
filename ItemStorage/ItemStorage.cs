@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace ContainerLibrary;
 
@@ -11,11 +12,26 @@ public partial class ItemStorage
 	private StackOverride? _stackOverride;
 	private CanInteract? _canInteract; // NOTE: should this be a list?
 
+	public int Count => Items.Length;
+
 	public ItemStorage(int slots)
 	{
 		if (slots < 1) throw new ArgumentException("Can't create ItemStorage with less than 1 slot");
 
 		Items = new Item[slots];
+		for (int i = 0; i < slots; i++)
+		{
+			Items[i] = new Item();
+		}
+	}
+
+	public Item this[int index]
+	{
+		get
+		{
+			ValidateSlotIndex(index);
+			return Items[index];
+		}
 	}
 
 	public ItemStorage Clone()
@@ -24,7 +40,7 @@ public partial class ItemStorage
 		storage.Items = Items.Select(item => item.Clone()).ToArray();
 		return storage;
 	}
-	
+
 	public ItemStorage SetStackOverride(StackOverride @override)
 	{
 		_stackOverride = @override;
@@ -59,18 +75,30 @@ public partial class ItemStorage
 		if (!EvaluateFilters(slot, insert) || (!item.IsAir && (insert.type != item.type || !ItemLoader.CanStack(item, insert))))
 			return Result.NotValid;
 
-		int remainingSpace = Math.Min(EvaluateMaxStack(slot, insert) - item.stack, insert.stack);
-		if (remainingSpace <= 0)
+		int canInsert = Math.Min(EvaluateMaxStack(slot, insert) - item.stack, insert.stack);
+		if (canInsert <= 0)
 			return Result.DestinationFull;
 
-		bool cantFit = insert.stack > remainingSpace;
+		bool cantFit = insert.stack > canInsert;
 
-		if (item.IsAir) Items[slot] = cantFit ? Utility.CloneItemWithSize(insert, remainingSpace) : insert;
-		else item.stack += remainingSpace;
+		// I have to differentiate between inserting into an
+		// - empty slot
+		// - partially full slot
+		// Also whether the source item will fit into either
+		// Completely full slots require no additional logic
+		
+		// ItemLoader.OnStack();
+		
+		if (item.IsAir) Items[slot] = cantFit ? Utility.CloneItemWithSize(insert, canInsert) : insert;
+		else item.stack += canInsert;
 
-		insert = cantFit ? Utility.CloneItemWithSize(insert, insert.stack - remainingSpace) : new Item();
+		insert = cantFit ? Utility.CloneItemWithSize(insert, insert.stack - canInsert) : new Item();
 
 		// OnContentsChanged(user, Operation.Insert, slot);
+
+		// NOTE: this should be inspected
+		// inv[slot] = ItemLoader.TransferWithLimit(Main.mouseItem, 1);
+		// ItemLoader.TryStackItems
 
 		return Result.Success;
 	}
@@ -103,8 +131,8 @@ public partial class ItemStorage
 		int toExtract = Utility.Min(amount < 0 ? int.MaxValue : amount, Items[slot].maxStack, Items[slot].stack);
 		Result result = Items[slot].stack < toExtract ? Result.PartialSuccess : Result.Success; // TODO: should partial removal be a success?
 
-		item = Utility.CloneItemWithSize(item, toExtract);
-		Items[slot] = Utility.CloneItemWithSize(item, Items[slot].stack - toExtract);
+		item = Utility.CloneItemWithSize(Items[slot], toExtract);
+		Items[slot] = Utility.CloneItemWithSize(Items[slot], Items[slot].stack - toExtract);
 
 		// OnContentsChanged(user, Operation.Remove, slot);
 
