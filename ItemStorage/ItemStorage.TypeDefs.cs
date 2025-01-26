@@ -23,7 +23,7 @@ public partial class ItemStorage
 		Both = 3
 	}
 
-	public delegate int StackOverride(int slot);
+	public delegate int? StackOverride(int slot);
 
 	public delegate bool CanInteract(object? user, int slot, Action action);
 }

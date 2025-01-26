@@ -58,49 +58,61 @@ public partial class ItemStorage
 	/// </summary>
 	/// <param name="user">User that performed this action</param>
 	/// <param name="slot">Slot to which the item is to be inserted</param>
-	/// <param name="insert">Item to insert</param>
+	/// <param name="source">Item to insert</param>
 	/// <returns>Success or reason why the action could not be performed.</returns>
-	public Result InsertItem(object? user, int slot, ref Item insert)
+	public Result InsertItem(object? user, int slot, ref Item source)
 	{
 		ValidateSlotIndex(slot);
 
-		if (insert.IsAir)
+		if (source.IsAir)
 			return Result.ItemIsAir;
 
 		if (_canInteract?.Invoke(user, slot, Action.Insert) == false)
 			return Result.CantInteract;
 
-		Item item = Items[slot];
+		Item destination = Items[slot];
 
-		if (!EvaluateFilters(slot, insert) || (!item.IsAir && (insert.type != item.type || !ItemLoader.CanStack(item, insert))))
+		if (!EvaluateFilters(slot, source) || (!destination.IsAir && (source.type != destination.type || !ItemLoader.CanStack(destination, source))))
 			return Result.NotValid;
 
-		int canInsert = Math.Min(EvaluateMaxStack(slot, insert) - item.stack, insert.stack);
-		if (canInsert <= 0)
+		int toInsert = Math.Min(EvaluateMaxStack(slot, source) - destination.stack, source.stack);
+		if (toInsert <= 0)
 			return Result.DestinationFull;
 
-		bool cantFit = insert.stack > canInsert;
+		bool cantFit = source.stack > toInsert;
 
-		// I have to differentiate between inserting into an
-		// - empty slot
-		// - partially full slot
-		// Also whether the source item will fit into either
-		// Completely full slots require no additional logic
-		
-		// ItemLoader.OnStack();
-		
-		if (item.IsAir) Items[slot] = cantFit ? Utility.CloneItemWithSize(insert, canInsert) : insert;
-		else item.stack += canInsert;
-
-		insert = cantFit ? Utility.CloneItemWithSize(insert, insert.stack - canInsert) : new Item();
+		if (destination.IsAir)
+		{
+			if (cantFit)
+			{
+				Items[slot] = source.Clone();
+				ItemLoader.SplitStack(Items[slot], source, toInsert);
+			}
+			else
+			{
+				Items[slot] = source;
+				source = new Item();
+			}
+		}
+		else
+		{
+			if (cantFit)
+			{
+				ItemLoader.OnStack(destination, source, toInsert);
+				destination.stack += toInsert;
+				source.stack -= toInsert;
+			}
+			else
+			{
+				ItemLoader.OnStack(destination, source, toInsert);
+				destination.stack += toInsert;
+				source = new Item();
+			}
+		}
 
 		// OnContentsChanged(user, Operation.Insert, slot);
 
-		// NOTE: this should be inspected
-		// inv[slot] = ItemLoader.TransferWithLimit(Main.mouseItem, 1);
-		// ItemLoader.TryStackItems
-
-		return Result.Success;
+		return cantFit ? Result.PartialSuccess : Result.Success;
 	}
 
 	/// <summary>
@@ -126,17 +138,23 @@ public partial class ItemStorage
 		if (Items[slot].IsAir)
 			return Result.SourceEmpty;
 
-		// item = Items[slot];
-
 		int toExtract = Utility.Min(amount < 0 ? int.MaxValue : amount, Items[slot].maxStack, Items[slot].stack);
-		Result result = Items[slot].stack < toExtract ? Result.PartialSuccess : Result.Success; // TODO: should partial removal be a success?
 
-		item = Utility.CloneItemWithSize(Items[slot], toExtract);
-		Items[slot] = Utility.CloneItemWithSize(Items[slot], Items[slot].stack - toExtract);
+		// TODO: should partial removal be a success?
+		if (Items[slot].stack == toExtract)
+		{
+			item = Items[slot];
+			Items[slot] = new Item();
+
+			return Result.Success;
+		}
+
+		item = Items[slot].Clone();
+		ItemLoader.SplitStack(item, Items[slot], toExtract);
+
+		return Result.PartialSuccess;
 
 		// OnContentsChanged(user, Operation.Remove, slot);
-
-		return result;
 	}
 
 	private void ValidateSlotIndex(int slot)
