@@ -60,7 +60,7 @@ public partial class ItemStorage
 	/// <param name="slot">Slot to which the item is to be inserted</param>
 	/// <param name="source">Item to insert</param>
 	/// <returns>Success or reason why the action could not be performed.</returns>
-	public Result InsertItem(object? user, int slot, ref Item source)
+	public Result InsertItem(object? user, int slot, ref Item source, int amount = -1)
 	{
 		ValidateSlotIndex(slot);
 
@@ -75,7 +75,7 @@ public partial class ItemStorage
 		if (!EvaluateFilters(slot, source) || (!destination.IsAir && (source.type != destination.type || !ItemLoader.CanStack(destination, source))))
 			return Result.NotValid;
 
-		int toInsert = Math.Min(EvaluateMaxStack(slot, source) - destination.stack, source.stack);
+		int toInsert = StorageUtility.Min(amount < 0 ? int.MaxValue : amount, EvaluateMaxStack(slot, source) - destination.stack, source.stack);
 		if (toInsert <= 0)
 			return Result.DestinationFull;
 
