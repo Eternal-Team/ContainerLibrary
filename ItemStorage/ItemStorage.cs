@@ -116,6 +116,29 @@ public partial class ItemStorage
 	}
 
 	/// <summary>
+	/// Checks whether an item fits inside a slot
+	/// </summary>
+	/// <param name="user">User that performed this action</param>
+	/// <param name="slot">Slot from which the item is to be fitted</param>
+	/// <param name="item">Item checked for fitness</param>
+	/// <returns>Returns true if item fits into the slot</returns>
+	public bool CheckFit(object? user, int slot, Item item)
+	{
+		ValidateSlotIndex(slot);
+
+		if (item.IsAir)
+			return true;
+
+		if (_canInteract?.Invoke(user, slot, Action.Insert) == false)
+			return false;
+
+		if (!EvaluateFilters(slot, item))
+			return false;
+
+		return item.stack <= EvaluateMaxStack(slot, item);
+	}
+
+	/// <summary>
 	/// Removes an item from the ItemStorage.
 	/// </summary>
 	/// <param name="user">User that performed this action</param>
@@ -186,7 +209,7 @@ public partial class ItemStorage
 
 		return Result.PartialSuccess;
 	}
-	
+
 	private void ValidateSlotIndex(int slot)
 	{
 		if (slot < 0 || slot >= Items.Length)
