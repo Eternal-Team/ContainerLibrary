@@ -3,7 +3,7 @@ using Terraria;
 
 namespace ContainerLibrary;
 
-internal static class Utility
+public static class StorageUtility
 {
 	internal static Item CloneItemWithSize(Item item, int size)
 	{
@@ -21,4 +21,6 @@ internal static class Utility
 		if (m > c) m = c;
 		return m;
 	}
+	
+	public static bool IsSuccess(this ItemStorage.Result result) => result is ItemStorage.Result.Success or ItemStorage.Result.PartialSuccess;
 }

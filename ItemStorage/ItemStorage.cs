@@ -123,7 +123,7 @@ public partial class ItemStorage
 	/// <param name="item">Item which was removed</param>
 	/// <param name="amount">Amount to remove, negative values result in up to int.MaxValue items being removed</param>
 	/// <returns>Success or reason why the action could not be performed.</returns>
-	public Result RemoveItem(object? user, int slot, out Item? item, int amount = -1)
+	public Result RemoveItem(object? user, int slot, out Item item, int amount = -1)
 	{
 		ValidateSlotIndex(slot);
 
@@ -138,7 +138,7 @@ public partial class ItemStorage
 		if (Items[slot].IsAir)
 			return Result.SourceEmpty;
 
-		int toExtract = Utility.Min(amount < 0 ? int.MaxValue : amount, Items[slot].maxStack, Items[slot].stack);
+		int toExtract = StorageUtility.Min(amount < 0 ? int.MaxValue : amount, Items[slot].maxStack, Items[slot].stack);
 
 		// TODO: should partial removal be a success?
 		if (Items[slot].stack == toExtract)
@@ -157,6 +157,36 @@ public partial class ItemStorage
 		// OnContentsChanged(user, Operation.Remove, slot);
 	}
 
+	public Result SimulateRemoveItem(object? user, int slot, out Item item, int amount = -1)
+	{
+		ValidateSlotIndex(slot);
+
+		item = new Item();
+
+		if (amount == 0)
+			return Result.NotValid;
+
+		if (_canInteract?.Invoke(user, slot, Action.Remove) == false)
+			return Result.CantInteract;
+
+		if (Items[slot].IsAir)
+			return Result.SourceEmpty;
+
+		int toExtract = StorageUtility.Min(amount < 0 ? int.MaxValue : amount, Items[slot].maxStack, Items[slot].stack);
+
+		// TODO: should partial removal be a success?
+		if (Items[slot].stack == toExtract)
+		{
+			item = Items[slot].Clone();
+
+			return Result.Success;
+		}
+
+		item = StorageUtility.CloneItemWithSize(Items[slot], toExtract);
+
+		return Result.PartialSuccess;
+	}
+	
 	private void ValidateSlotIndex(int slot)
 	{
 		if (slot < 0 || slot >= Items.Length)
